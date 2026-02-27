@@ -32,11 +32,17 @@ const ProfileHero: React.FC<ProfileHeroProps> = ({ creator, resources = [], onSh
         <div className="relative group shrink-0">
           <div className="absolute -inset-1.5 rounded-full bg-gradient-to-tr from-white/40 via-transparent to-white/10 opacity-30 group-hover:opacity-60 transition duration-700 blur"></div>
           <div className="relative h-28 w-28 sm:h-44 sm:w-44 rounded-full p-1.5 bg-black border border-white/10 overflow-hidden">
-            <img
-              src={creator.profilePic}
-              alt={creator.displayName}
-              className="h-full w-full rounded-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110"
-            />
+            {creator.profilePic ? (
+              <img
+                src={creator.profilePic}
+                alt={creator.displayName}
+                className="h-full w-full rounded-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110"
+              />
+            ) : (
+              <div className="h-full w-full rounded-full bg-neutral-900 border border-white/5 flex items-center justify-center grayscale-[0.3] group-hover:grayscale-0 transition-all duration-700 scale-105 group-hover:scale-110">
+                <Users className="h-12 w-12 text-neutral-700" />
+              </div>
+            )}
           </div>
         </div>
 
@@ -56,8 +62,8 @@ const ProfileHero: React.FC<ProfileHeroProps> = ({ creator, resources = [], onSh
                 <button
                   onClick={() => setIsFollowing(!isFollowing)}
                   className={`flex items-center gap-2 rounded-full px-5 sm:px-6 py-2 sm:py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-2xl ${isFollowing
-                      ? 'bg-neutral-800 text-white border border-white/20'
-                      : 'bg-white text-black shadow-white/10'
+                    ? 'bg-neutral-800 text-white border border-white/20'
+                    : 'bg-white text-black shadow-white/10'
                     }`}
                 >
                   {isFollowing ? <UserCheck className="h-3.5 w-3.5" /> : <UserPlus className="h-3.5 w-3.5" />}

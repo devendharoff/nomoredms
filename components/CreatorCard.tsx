@@ -28,13 +28,19 @@ const CreatorCard = ({ creator, onNavigate }: CreatorCardProps) => {
             <div className="flex flex-col items-center text-center space-y-4">
                 <div className="relative">
                     <div className="absolute inset-0 bg-green-500 blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-700" />
-                    <Image
-                        src={creator.profilePic}
-                        alt={creator.displayName}
-                        width={96}
-                        height={96}
-                        className="relative h-24 w-24 rounded-full border-4 border-white dark:border-neutral-800 object-cover shadow-lg group-hover:scale-105 transition-transform duration-500"
-                    />
+                    {creator.profilePic ? (
+                        <Image
+                            src={creator.profilePic}
+                            alt={creator.displayName}
+                            width={96}
+                            height={96}
+                            className="relative h-24 w-24 rounded-full border-4 border-white dark:border-neutral-800 object-cover shadow-lg group-hover:scale-105 transition-transform duration-500"
+                        />
+                    ) : (
+                        <div className="relative h-24 w-24 rounded-full border-4 border-white dark:border-neutral-800 bg-zinc-100 dark:bg-neutral-800 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-500">
+                            <Users className="h-8 w-8 text-zinc-400 dark:text-neutral-600" />
+                        </div>
+                    )}
                     {creator.isVerified && (
                         <div className="absolute bottom-1 right-1 bg-white dark:bg-neutral-900 rounded-full p-1 shadow-md">
                             <ShieldCheck className="h-5 w-5 text-green-500 fill-current" />

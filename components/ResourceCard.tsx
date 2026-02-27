@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, MoreVertical, Flag, Calendar, ShieldCheck, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { ExternalLink, MoreVertical, Flag, Calendar, ShieldCheck, Copy, Check, ChevronDown, ChevronUp, Users, Image as ImageIcon } from 'lucide-react';
 import { Resource, Creator } from '../types';
 import Image from 'next/image';
 
@@ -66,14 +66,20 @@ const ResourceCard = memo(({
           transition={{ duration: 0.4 }}
           className="h-full w-full relative"
         >
-          <Image
-            src={resource.thumbnail}
-            alt={`Thumbnail for ${resource.title}`}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            onLoad={() => setImageLoaded(true)}
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-          />
+          {resource.thumbnail ? (
+            <Image
+              src={resource.thumbnail}
+              alt={`Thumbnail for ${resource.title}`}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              onLoad={() => setImageLoaded(true)}
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+            />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center bg-zinc-100 dark:bg-neutral-800">
+              <ImageIcon className="h-12 w-12 text-zinc-300 dark:text-neutral-700" />
+            </div>
+          )}
         </motion.div>
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 dark:from-black/70 to-transparent opacity-60 transition-opacity group-hover:opacity-40" aria-hidden="true" />
@@ -148,13 +154,19 @@ const ResourceCard = memo(({
               className="group/creator flex items-center gap-3 cursor-pointer p-2 -ml-2 rounded-xl transition-all hover:bg-zinc-100 dark:hover:bg-white/5 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-green-500 text-left w-full"
             >
               <div className="relative">
-                <Image
-                  src={creator.profilePic}
-                  alt={creator.displayName}
-                  width={40}
-                  height={40}
-                  className="h-10 w-10 rounded-full border border-zinc-200 dark:border-white/10 object-cover"
-                />
+                {creator.profilePic ? (
+                  <Image
+                    src={creator.profilePic}
+                    alt={creator.displayName}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 rounded-full border border-zinc-200 dark:border-white/10 object-cover"
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full border border-zinc-200 dark:border-white/10 bg-zinc-100 dark:bg-neutral-800 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-zinc-400" />
+                  </div>
+                )}
                 {creator.isVerified && <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-white p-0.5 shadow-lg border border-zinc-100"><ShieldCheck className="h-2.5 w-2.5 text-black" aria-hidden="true" /></div>}
               </div>
               <div className="flex flex-col">

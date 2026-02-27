@@ -153,7 +153,12 @@ export default function AdminDashboardContainer({
             // Replace temp ID with real ID
             setResources(prev => prev.map(r => r.id === tempId ? { ...r, id: data.id } : r));
         } else if (error) {
-            console.error('Error adding resource:', error);
+            console.error('Error adding resource:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            });
             // Revert
             setResources(prev => prev.filter(r => r.id !== tempId));
         }
@@ -174,7 +179,13 @@ export default function AdminDashboardContainer({
         if (updates.isHidden !== undefined) dbUpdates.is_hidden = updates.isHidden;
 
         const { error } = await supabase.from('resources').update(dbUpdates).eq('id', id);
-        if (error) console.error('Error updating resource:', error);
+        if (error) {
+            console.error('Error updating resource:', {
+                message: error.message,
+                code: error.code,
+                details: error.details
+            });
+        }
     };
 
     const handleDeleteResource = async (id: string) => {
@@ -195,7 +206,7 @@ export default function AdminDashboardContainer({
         const creator = { ...newC, id: tempId, followersCount: 0, socials: {}, isVerified: false, isHidden: false } as Creator;
         setCreators(prev => [creator, ...prev]);
 
-        const { data } = await supabase.from('creators').insert([{
+        const { data, error } = await supabase.from('creators').insert([{
             slug: (newC.displayName || '').toLowerCase().replace(/\s+/g, '-'),
             username: newC.username,
             display_name: newC.displayName,
@@ -206,6 +217,13 @@ export default function AdminDashboardContainer({
 
         if (data) {
             setCreators(prev => prev.map(c => c.id === tempId ? { ...c, id: data.id } : c));
+        } else if (error) {
+            console.error('Error adding creator:', {
+                message: error.message,
+                code: error.code,
+                details: error.details
+            });
+            setCreators(prev => prev.filter(c => c.id !== tempId));
         }
     };
 
@@ -232,9 +250,16 @@ export default function AdminDashboardContainer({
         const prompt = { ...newP, id: tempId } as TrendingPrompt;
         setPrompts(prev => [prompt, ...prev]);
 
-        const { data } = await supabase.from('trending_prompts').insert([newP]).select().single();
+        const { data, error } = await supabase.from('trending_prompts').insert([newP]).select().single();
         if (data) {
             setPrompts(prev => prev.map(p => p.id === tempId ? { ...p, id: data.id } : p));
+        } else if (error) {
+            console.error('Error adding prompt:', {
+                message: error.message,
+                code: error.code,
+                details: error.details
+            });
+            setPrompts(prev => prev.filter(p => p.id !== tempId));
         }
     };
 

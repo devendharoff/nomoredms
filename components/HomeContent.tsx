@@ -18,7 +18,7 @@ import GlassLoading from './ui/GlassLoading';
 import { createClient } from '@/utils/supabase/client';
 import { mapCreator, mapResource } from '@/lib/mappers';
 
-import { Zap, ChevronDown, Sparkles, ArrowRight } from 'lucide-react';
+import { Zap, ChevronDown, Sparkles, ArrowRight, Users } from 'lucide-react';
 import { Resource, Creator, TrendingPrompt } from '@/types';
 
 type SortOrder = 'newest' | 'oldest' | 'title-az' | 'title-za' | 'category';
@@ -261,7 +261,13 @@ export default function HomeContent({
                                                     onClick={() => handleNavigateCreator(c.slug)}
                                                     className="flex-shrink-0 flex items-center gap-6 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/5 px-10 py-6 rounded-[2.5rem] shadow-sm hover:shadow-2xl hover:bg-white dark:hover:bg-neutral-800 transition-all cursor-pointer group"
                                                 >
-                                                    <img src={c.profilePic} className="h-14 w-14 rounded-full grayscale group-hover:grayscale-0 transition-all border border-transparent group-hover:border-white/20" alt="" />
+                                                    {c.profilePic ? (
+                                                        <img src={c.profilePic} className="h-14 w-14 rounded-full grayscale group-hover:grayscale-0 transition-all border border-transparent group-hover:border-white/20 object-cover" alt="" />
+                                                    ) : (
+                                                        <div className="h-14 w-14 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center border border-zinc-300 dark:border-white/10">
+                                                            <Users className="h-6 w-6 text-zinc-400" />
+                                                        </div>
+                                                    )}
                                                     <span className="text-zinc-950 dark:text-white font-black uppercase tracking-tighter text-2xl group-hover:tracking-tight transition-all">{c.displayName}</span>
                                                 </motion.div>
                                             ))}

@@ -397,7 +397,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {trendingPrompts.map((p: TrendingPrompt) => (
                       <tr key={p.id} className="hover:bg-white/[0.02] transition-colors group">
                         <td className="px-10 py-6">
-                          <img src={p.thumbnail} className="h-14 w-24 rounded-xl border border-white/10 object-cover shadow-2xl" alt="" />
+                          {p.thumbnail ? (
+                            <img src={p.thumbnail} className="h-14 w-24 rounded-xl border border-white/10 object-cover shadow-2xl" alt="" />
+                          ) : (
+                            <div className="h-14 w-24 rounded-xl border border-white/10 bg-zinc-900 flex items-center justify-center">
+                              <ImageIcon className="h-5 w-5 text-zinc-700" />
+                            </div>
+                          )}
                         </td>
                         <td className="px-10 py-6">
                           <div className="font-black text-white text-sm uppercase tracking-tight mb-1">{p.title}</div>
@@ -462,7 +468,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </td>
                           <td className="px-8 py-6">
                             <div className="flex items-center gap-4">
-                              <img src={creator?.profilePic} className="h-10 w-10 rounded-full border border-white/10 grayscale group-hover:grayscale-0 transition-all object-cover" alt="" />
+                              {creator?.profilePic ? (
+                                <img src={creator.profilePic} className="h-10 w-10 rounded-full border border-white/10 grayscale group-hover:grayscale-0 transition-all object-cover" alt="" />
+                              ) : (
+                                <div className="h-10 w-10 rounded-full border border-white/10 bg-zinc-900 flex items-center justify-center">
+                                  <Users className="h-5 w-5 text-zinc-700" />
+                                </div>
+                              )}
                               <div className="font-bold text-white uppercase tracking-tight">@{creator?.username}</div>
                             </div>
                           </td>
@@ -546,7 +558,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <tr key={c.id} className={`hover:bg-white/[0.02] transition-colors group ${c.isHidden ? 'opacity-40 grayscale' : ''}`}>
                         <td className="px-10 py-6">
                           <div className="flex items-center gap-5">
-                            <img src={c.profilePic} className="h-12 w-12 rounded-full border border-white/10 object-cover shadow-2xl" alt="" />
+                            {c.profilePic ? (
+                              <img src={c.profilePic} className="h-12 w-12 rounded-full border border-white/10 object-cover shadow-2xl" alt="" />
+                            ) : (
+                              <div className="h-12 w-12 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center">
+                                <Users className="h-6 w-6 text-zinc-700" />
+                              </div>
+                            )}
                             <div>
                               <div className="flex items-center gap-2 font-black text-white text-sm uppercase tracking-tight">
                                 {c.displayName}
@@ -621,8 +639,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </td>
                         <td className="px-10 py-7">
                           <div className="flex items-center gap-3">
-                            <img src={creators.find(c => c.id === r.creatorId)?.profilePic} className="h-8 w-8 rounded-full grayscale group-hover:grayscale-0 transition-all border border-white/10" alt="" />
-                            <span className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">@{creators.find(c => c.id === r.creatorId)?.username}</span>
+                            {creators.find(c => c.id === r.creatorId)?.profilePic ? (
+                              <img src={creators.find(c => c.id === r.creatorId)?.profilePic} className="h-8 w-8 rounded-full grayscale group-hover:grayscale-0 transition-all border border-white/10" alt="" />
+                            ) : (
+                              <div className="h-8 w-8 rounded-full border border-white/10 bg-zinc-900 flex items-center justify-center">
+                                <Users className="h-4 w-4 text-zinc-700" />
+                              </div>
+                            )}
+                            <span className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">@{creators.find(c => c.id === r.creatorId)?.username || 'unknown'}</span>
                           </div>
                         </td>
                         <td className="px-10 py-7">
