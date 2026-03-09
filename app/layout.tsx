@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-
-<<<<<<< HEAD
 import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -85,13 +83,6 @@ const jsonLd = {
         target: 'https://nomoredms.com/?q={search_term_string}',
         'query-input': 'required name=search_term_string',
     },
-=======
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata: Metadata = {
-    title: 'No More DMs - The Creator Resource Hub',
-    description: 'Stop begging for links. Access all resources instantly.',
->>>>>>> origin/main
 };
 
 export default function RootLayout({
@@ -101,7 +92,6 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en" suppressHydrationWarning={true}>
-<<<<<<< HEAD
             <head>
                 <Script
                     id="json-ld"
@@ -109,9 +99,8 @@ export default function RootLayout({
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                 />
             </head>
-=======
->>>>>>> origin/main
             <body className={inter.className} suppressHydrationWarning={true}>{children}</body>
         </html>
     );
 }
+

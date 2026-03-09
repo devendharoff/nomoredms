@@ -1,17 +1,13 @@
 const nextConfig = {
-<<<<<<< HEAD
-    images: {
-        minimumCacheTTL: 60,
-        deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-        imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-=======
     experimental: {
         turbopack: {
             root: '.',
         },
     },
     images: {
->>>>>>> origin/main
+        minimumCacheTTL: 3600,
+        deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+        imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
         remotePatterns: [
             {
                 protocol: 'https',
@@ -39,12 +35,10 @@ const nextConfig = {
             },
         ],
     },
-<<<<<<< HEAD
     compress: true,
     reactStrictMode: true,
     poweredByHeader: false,
-=======
->>>>>>> origin/main
 };
 
 export default nextConfig;
+

@@ -41,7 +41,6 @@ export const MOCK_CREATORS: Creator[] = [
     isHidden: false,
     followersCount: 25000,
     socials: { instagram: '#' }
-<<<<<<< HEAD
   },
   {
     id: 'c4',
@@ -55,8 +54,6 @@ export const MOCK_CREATORS: Creator[] = [
     isHidden: false,
     followersCount: 5600,
     socials: { github: '#', twitter: '#' }
-=======
->>>>>>> origin/main
   }
 ];
 
@@ -93,7 +90,6 @@ export const MOCK_RESOURCES: Resource[] = [
   {
     id: 'p1',
     creatorId: 'c1',
-<<<<<<< HEAD
     title: 'CodeFast: The AI-Driven Coding Assistant',
     description: 'An advanced VS Code extension that predicts your next 50 lines of code with 90% accuracy.',
     category: 'AI Tools',
@@ -101,21 +97,12 @@ export const MOCK_RESOURCES: Resource[] = [
     thumbnail: 'https://picsum.photos/seed/p1/600/400',
     date: 'Dec 01, 2024',
     url: 'https://codefast.ai',
-=======
-    title: 'Check out this insane AI tool it helps you code faster than ever before guys you need this...',
-    category: 'AI Tools',
-    tags: [],
-    thumbnail: 'https://picsum.photos/seed/p1/600/400',
-    date: 'Dec 01, 2024',
-    url: 'https://bit.ly/broken-example-404',
->>>>>>> origin/main
     status: 'pending',
     health: 'error'
   },
   {
     id: 'p2',
     creatorId: 'c3',
-<<<<<<< HEAD
     title: 'Figma Auto-Layout Magic: 50+ Component Templates',
     description: 'Stop building from scratch. Use these pre-built, perfectly responsive components.',
     category: 'Design',
@@ -123,20 +110,11 @@ export const MOCK_RESOURCES: Resource[] = [
     thumbnail: 'https://picsum.photos/seed/p2/600/400',
     date: 'Dec 02, 2024',
     url: 'https://figma.com/community/file/xyz',
-=======
-    title: 'Figma plugin for auto-layout you NEED it will save you 50 hours a week just use it',
-    category: 'Design',
-    tags: [],
-    thumbnail: 'https://picsum.photos/seed/p2/600/400',
-    date: 'Dec 02, 2024',
-    url: 'https://gumroad.com/l/xyz',
->>>>>>> origin/main
     status: 'pending',
     health: 'ok'
   },
   {
     id: 'p3',
-<<<<<<< HEAD
     creatorId: 'c4',
     title: 'Python Twitter Automator: 0 to 10k Followers',
     description: 'The exact script I used to automate my Twitter growth using Gemini Pro and Tweepy.',
@@ -145,31 +123,16 @@ export const MOCK_RESOURCES: Resource[] = [
     thumbnail: 'https://picsum.photos/seed/p3/600/400',
     date: 'Dec 03, 2024',
     url: 'https://github.com/vagera/twitter-bot',
-=======
-    creatorId: 'c1',
-    title: 'How I automate my entire Twitter with Python scripts and Gemini AI this is crazy',
-    category: 'Automation',
-    tags: [],
-    thumbnail: 'https://picsum.photos/seed/p3/600/400',
-    date: 'Dec 03, 2024',
-    url: 'https://github.com/example/bot',
->>>>>>> origin/main
     status: 'pending',
     health: 'ok'
   },
   {
     id: 'p4',
     creatorId: 'c2',
-<<<<<<< HEAD
     title: 'SaaS Font Kit 2024: Premium Typography Guide',
     description: 'A curated list of free and paid font pairings optimized for high-conversion SaaS landing pages.',
     category: 'Design',
     tags: ['#SaaS', '#Typography'],
-=======
-    title: 'My top 5 fonts for SaaS in 2024 that you haven\'t heard of yet subscribe for more',
-    category: 'Design',
-    tags: [],
->>>>>>> origin/main
     thumbnail: 'https://picsum.photos/seed/p4/600/400',
     date: 'Dec 04, 2024',
     url: 'https://google.com/fonts',
@@ -179,16 +142,10 @@ export const MOCK_RESOURCES: Resource[] = [
   {
     id: 'p5',
     creatorId: 'c3',
-<<<<<<< HEAD
     title: 'Responsive Component Hack: Subgrid & Container Queries',
     description: 'The secret technique for building truly adaptive components without media query hell.',
     category: 'Design',
     tags: ['#CSS', '#Responsiveness'],
-=======
-    title: 'Secret Figma hack for responsive components that actually works unlike the rest',
-    category: 'Design',
-    tags: [],
->>>>>>> origin/main
     thumbnail: 'https://picsum.photos/seed/p5/600/400',
     date: 'Dec 05, 2024',
     url: 'https://youtube.com/watch?v=123',

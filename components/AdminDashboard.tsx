@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import {
   Plus,
   Trash2,
@@ -56,10 +57,7 @@ interface AdminDashboardProps {
   onAddCreator: (c: Partial<Creator>) => void;
   onAddPrompt?: (p: Partial<TrendingPrompt>) => void;
   onDeleteResource: (id: string) => void;
-<<<<<<< HEAD
   onDeleteCreator?: (id: string) => void;
-=======
->>>>>>> origin/main
   onDeletePrompt?: (id: string) => void;
   onToggleResourceVisibility: (id: string) => void;
   onUpdateResource?: (id: string, updates: Partial<Resource>) => void;
@@ -81,10 +79,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onAddCreator,
   onAddPrompt,
   onDeleteResource,
-<<<<<<< HEAD
   onDeleteCreator,
-=======
->>>>>>> origin/main
   onDeletePrompt,
   onToggleResourceVisibility,
   onUpdateResource,
@@ -95,10 +90,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'staging' | 'rolodex' | 'fixer' | 'manual' | 'prompts' | 'access' | 'bulk'>('staging');
   const [editingItem, setEditingItem] = useState<Resource | null>(null);
-<<<<<<< HEAD
   const [editingCreator, setEditingCreator] = useState<Creator | null>(null);
-=======
->>>>>>> origin/main
   const [searchQuery, setSearchQuery] = useState('');
 
   // Form States
@@ -539,12 +531,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {NICHES.map(n => <option key={n} value={n}>{n}</option>)}
                   </select>
                   <input value={newCreator.profilePic} onChange={e => setNewCreator({ ...newCreator, profilePic: e.target.value })} placeholder="Profile Pic URL" className="w-full bg-black border border-white/5 rounded-2xl p-5 text-sm font-bold text-white focus:border-blue-500 outline-none transition-all shadow-inner" />
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4">
                     <label className="flex-none p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => processFileUpload(e, 'avatars', (url) => setNewCreator({ ...newCreator, profilePic: url }))} />
                       <UserPlus className="h-4 w-4 text-neutral-400" />
                     </label>
-                    <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider">Or Upload Avatar</p>
+                    {newCreator.profilePic ? (
+                      <div className="flex items-center gap-3">
+                        <img src={newCreator.profilePic} className="h-10 w-10 rounded-full object-cover border border-white/10" alt="Preview" />
+                        <p className="text-[10px] text-green-500 font-black uppercase tracking-wider">Image Loaded</p>
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider">Or Upload Avatar</p>
+                    )}
                   </div>
                   <button type="submit" className="w-full bg-white text-black py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neutral-200 transition-all active:scale-95 shadow-2xl">Create Profile</button>
                 </form>
@@ -595,38 +594,40 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             {c.isVerified ? 'Verified' : 'Unverified'}
                           </button>
                         </td>
-                        <td className="px-10 py-6 text-right">
+                        <td className="px-10 py-6 text-right space-x-2">
+                          <Link
+                            href={`/creator/${c.slug}`}
+                            target="_blank"
+                            className="inline-flex p-3 rounded-xl transition-all text-neutral-500 hover:text-blue-400 bg-white/5 hover:bg-white/10"
+                            title="View Public Profile"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
                           <button
-<<<<<<< HEAD
                             onClick={() => setEditingCreator(c)}
-                            className="p-3 rounded-xl transition-all text-neutral-500 hover:text-white bg-white/5 hover:bg-white/10 mr-2"
+                            className="p-3 rounded-xl transition-all text-neutral-500 hover:text-white bg-white/5 hover:bg-white/10"
                             title="Edit Creator"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
-=======
->>>>>>> origin/main
                             onClick={() => onUpdateCreator?.(c.id, { isHidden: !c.isHidden })}
                             className={`p-3 rounded-xl transition-all ${c.isHidden ? 'text-red-500 bg-red-500/10' : 'text-neutral-500 hover:text-white bg-white/5 hover:bg-white/10'}`}
                             title={c.isHidden ? "Unhide" : "Ghost Hide"}
                           >
                             {c.isHidden ? <Ban className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
-<<<<<<< HEAD
                           <button
                             onClick={() => {
                               if (confirm(`Are you sure you want to PERMANENTLY delete creator ${c.username}? This will also orphaned their resources.`)) {
                                 onDeleteCreator?.(c.id);
                               }
                             }}
-                            className="p-3 rounded-xl bg-red-500/5 border border-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-xl"
+                            className="p-3 rounded-xl bg-red-500/5 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-xl"
                             title="Hard Delete Creator"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
-=======
->>>>>>> origin/main
                         </td>
                       </tr>
                     ))}
@@ -783,6 +784,37 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                 </div>
 
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-neutral-600 flex items-center gap-2">
+                    <ImageIcon className="h-3 w-3" /> Asset Thumbnail
+                  </label>
+                  <div className="space-y-4">
+                    <input
+                      value={newManualResource.thumbnail || ''}
+                      onChange={e => setNewManualResource({ ...newManualResource, thumbnail: e.target.value })}
+                      placeholder="Thumbnail URL or upload"
+                      className="w-full bg-black border border-white/5 rounded-2xl p-5 text-sm font-bold text-white focus:border-green-500 outline-none transition-all shadow-inner"
+                    />
+                    <div className="flex items-center gap-4">
+                      <label className="flex-none p-4 bg-white/5 rounded-2xl cursor-pointer hover:bg-white/10 transition-colors border border-white/5">
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => processFileUpload(e, 'thumbnails', (url) => setNewManualResource({ ...newManualResource, thumbnail: url }))} />
+                        <Upload className="h-5 w-5 text-neutral-400" />
+                      </label>
+                      {newManualResource.thumbnail ? (
+                        <div className="flex items-center gap-4">
+                          <img src={newManualResource.thumbnail} className="h-14 w-24 rounded-xl object-cover border border-white/10 shadow-2xl" alt="Preview" />
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-green-500 font-black uppercase tracking-widest">Node Upload Successful</p>
+                            <p className="text-[8px] text-neutral-600 font-mono">ASSET_ID: {Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-neutral-500 uppercase font-black tracking-widest">Select Image from disk</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <button
                   onClick={() => { onAddResource(newManualResource); setActiveTab('fixer'); }}
                   className="w-full bg-green-500 text-black py-6 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.4em] hover:bg-green-400 transition-all active:scale-95 shadow-2xl shadow-green-500/20 flex items-center justify-center gap-4"
@@ -845,12 +877,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       className="w-full bg-black border border-white/5 rounded-2xl p-5 text-sm font-bold text-white focus:border-green-500 outline-none transition-all shadow-inner"
                       placeholder="Image URL"
                     />
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
                       <label className="flex-none p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
                         <input type="file" className="hidden" accept="image/*" onChange={(e) => processFileUpload(e, 'thumbnails', (url) => setEditingItem(prev => prev ? { ...prev, thumbnail: url } : null))} />
                         <ImageIcon className="h-4 w-4 text-neutral-400" />
                       </label>
-                      <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider">Upload New Thumbnail</p>
+                      {editingItem!.thumbnail && (
+                        <div className="flex items-center gap-3">
+                          <img src={editingItem!.thumbnail} className="h-12 w-20 rounded-lg object-cover border border-white/10" alt="Preview" />
+                          <p className="text-[10px] text-green-500 font-black uppercase tracking-wider">Preview Ready</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -903,8 +940,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         )}
       </AnimatePresence>
-<<<<<<< HEAD
-
       {/* Edit Creator Modal */}
       <AnimatePresence>
         {editingCreator && (
@@ -954,12 +989,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       className="w-full bg-black border border-white/5 rounded-2xl p-5 text-sm font-bold text-white focus:border-blue-500 outline-none transition-all shadow-inner"
                       placeholder="Image URL"
                     />
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-4">
                       <label className="flex-none p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors">
                         <input type="file" className="hidden" accept="image/*" onChange={(e) => processFileUpload(e, 'avatars', (url) => setEditingCreator(prev => prev ? { ...prev, profilePic: url } : null))} />
                         <ImageIcon className="h-4 w-4 text-neutral-400" />
                       </label>
-                      <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider">Upload New Avatar</p>
+                      {editingCreator.profilePic && (
+                        <div className="flex items-center gap-4">
+                          <img src={editingCreator.profilePic} className="h-10 w-10 rounded-full object-cover border border-white/10" alt="Preview" />
+                          <p className="text-[10px] text-green-500 font-black uppercase tracking-wider">Sync Successful</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1005,8 +1045,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         )}
       </AnimatePresence>
-=======
->>>>>>> origin/main
     </div>
   );
 };

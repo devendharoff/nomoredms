@@ -29,11 +29,8 @@ export interface Creator {
     instagram?: string;
     twitter?: string;
     youtube?: string;
-<<<<<<< HEAD
     github?: string;
     tiktok?: string;
-=======
->>>>>>> origin/main
   };
 }
 

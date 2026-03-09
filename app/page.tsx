@@ -8,13 +8,8 @@ export const revalidate = 0; // Disable static optimization for now (dynamic dat
 export default async function Home({ searchParams }: { searchParams: Promise<{ launch?: string }> }) {
     const supabase = await createClient();
 
-<<<<<<< HEAD
     const { data: creatorsData } = await supabase.from('creators').select('*').order('followersCount', { ascending: false }).limit(40);
     const { data: resourcesData } = await supabase.from('resources').select('*').order('date', { ascending: false }).limit(60);
-=======
-    const { data: creatorsData } = await supabase.from('creators').select('*');
-    const { data: resourcesData } = await supabase.from('resources').select('*');
->>>>>>> origin/main
 
     // Fallback to mocks if DB fails or is empty (safety net)
     const creatorsRaw = (creatorsData && creatorsData.length > 0) ? creatorsData : [];
