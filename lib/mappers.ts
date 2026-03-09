@@ -42,6 +42,7 @@ export function mapTrendingPrompt(dbPrompt: any): TrendingPrompt {
         prompt: dbPrompt.prompt || '',
         thumbnail: dbPrompt.thumbnail || '',
         model: dbPrompt.model || 'Unknown',
+        likes: Number(dbPrompt.likes || 0),
     };
 }
 

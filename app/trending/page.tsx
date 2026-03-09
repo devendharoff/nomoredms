@@ -32,6 +32,7 @@ export default async function TrendingPageRoot() {
         const { data: prompts, error } = await supabase
             .from('trending_prompts')
             .select('*')
+            .order('likes', { ascending: false })
             .order('created_at', { ascending: false });
 
         if (error) {

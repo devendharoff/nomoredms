@@ -41,6 +41,7 @@ export interface TrendingPrompt {
   prompt: string;
   thumbnail: string;
   model: string;
+  likes: number;
 }
 
 export interface Category {

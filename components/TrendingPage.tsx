@@ -1,13 +1,23 @@
 'use client';
 
-import React, { useState, memo, useEffect } from 'react';
+import React, { useState, memo, useEffect, useMemo } from 'react';
 import { TrendingPrompt } from '@/types';
 import { createClient } from '@/utils/supabase/client';
 import { mapTrendingPrompt } from '@/lib/mappers';
-import { Copy, Check, Image as ImageIcon, Video, Sparkles } from 'lucide-react';
+import { Copy, Check, Image as ImageIcon, Video, Sparkles, Heart } from 'lucide-react';
 
 const PromptCard = memo(({ prompt }: { prompt: TrendingPrompt }) => {
   const [copied, setCopied] = useState(false);
+  const [likes, setLikes] = useState(prompt.likes);
+  const [isLiking, setIsLiking] = useState(false);
+  const [hasLiked, setHasLiked] = useState(false);
+
+  useEffect(() => {
+    const likedPrompts = JSON.parse(localStorage.getItem('nmd_liked_prompts') || '[]');
+    if (likedPrompts.includes(prompt.id)) {
+      setHasLiked(true);
+    }
+  }, [prompt.id]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(prompt.prompt);
@@ -15,8 +25,31 @@ const PromptCard = memo(({ prompt }: { prompt: TrendingPrompt }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleLike = async () => {
+    if (isLiking || hasLiked) return;
+    setIsLiking(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('trending_prompts')
+        .update({ likes: likes + 1 })
+        .eq('id', prompt.id);
+
+      if (!error) {
+        setLikes(prev => prev + 1);
+        setHasLiked(true);
+        const likedPrompts = JSON.parse(localStorage.getItem('nmd_liked_prompts') || '[]');
+        localStorage.setItem('nmd_liked_prompts', JSON.stringify([...likedPrompts, prompt.id]));
+      }
+    } catch (err) {
+      console.error('Error liking:', err);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
   return (
-    <div className="group relative overflow-hidden rounded-[2rem] border border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-neutral-900/40 transition-all duration-500 hover:border-zinc-300 dark:hover:border-white/20 hover:bg-white dark:hover:bg-neutral-900/60 flex flex-col h-full backdrop-blur-xl">
+    <div className="group relative overflow-hidden rounded-[2rem] border border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-neutral-900/40 transition-all duration-500 hover:border-zinc-300 dark:hover:border-white/20 hover:bg-white dark:hover:bg-neutral-900/60 flex flex-col backdrop-blur-xl">
       <div className="relative w-full overflow-hidden">
         <img
           src={prompt.thumbnail}
@@ -34,15 +67,24 @@ const PromptCard = memo(({ prompt }: { prompt: TrendingPrompt }) => {
           </div>
         </div>
 
+        <button
+          onClick={handleLike}
+          disabled={isLiking || hasLiked}
+          className={`absolute top-4 right-4 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-md border border-white/10 transition-all hover:bg-white/10 active:scale-95 group/like ${hasLiked ? 'cursor-default' : 'cursor-pointer'}`}
+        >
+          <Heart className={`h-3.5 w-3.5 transition-colors ${hasLiked ? 'fill-red-500 text-red-500 scale-110' : 'text-zinc-400 group-hover/like:text-red-400'}`} />
+          <span className="text-[10px] font-black tracking-widest text-white">{likes}</span>
+        </button>
+
         <div className="absolute bottom-4 left-4 right-4">
           <h3 className="text-xl font-black tracking-tighter text-white mb-1 line-clamp-1">{prompt.title}</h3>
           <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{prompt.model}</div>
         </div>
       </div>
 
-      <div className="p-6 flex flex-col gap-4 flex-1">
-        <div className="relative flex-1">
-          <div className="rounded-2xl bg-zinc-100 dark:bg-black/50 border border-zinc-200 dark:border-white/5 p-4 text-xs font-medium leading-relaxed text-zinc-600 dark:text-neutral-400 italic font-serif">
+      <div className="p-6 flex flex-col gap-4">
+        <div className="relative">
+          <div className="rounded-2xl bg-zinc-100 dark:bg-black/50 border border-zinc-200 dark:border-white/5 p-4 text-xs font-medium leading-relaxed text-zinc-600 dark:text-neutral-400 italic font-serif max-h-[120px] overflow-y-auto no-scrollbar scroll-smooth">
             "{prompt.prompt}"
           </div>
         </div>
@@ -93,26 +135,35 @@ const TrendingPage: React.FC<TrendingPageProps> = ({ prompts: initialPrompts }) 
     };
   }, []);
 
+  const sortedPrompts = useMemo(() => {
+    return [...prompts].sort((a, b) => {
+      if ((b.likes || 0) !== (a.likes || 0)) {
+        return (b.likes || 0) - (a.likes || 0);
+      }
+      return 0; // Keep secondary stable if likes are equal
+    });
+  }, [prompts]);
+
   return (
     <div className="animate-fade-in">
       <section className="mx-auto max-w-7xl px-4 pt-24 pb-12 sm:px-6 relative text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/5 backdrop-blur-sm text-[10px] font-bold uppercase tracking-[0.2em] text-orange-500 mb-8">
-          <Sparkles className="h-3 w-3" /> The Viral Resources
+          <Sparkles className="h-3 w-3" /> Viral Trending resources
         </div>
         <h1 className="text-5xl font-black tracking-tighter text-white sm:text-7xl mb-6">
-          Trending <br />
+          Ranking <br />
           <span className="bg-gradient-to-r from-orange-400 via-white to-blue-400 bg-clip-text text-transparent">
-            Generation Prompts
+            By Community Likes
           </span>
         </h1>
         <p className="mx-auto max-w-xl text-lg text-zinc-400 font-medium">
-          Behind every viral Reel is a high-performance prompt. We've decoded the best of the week.
+          The most popular prompts voted by the community. Behind every viral Reel is a high-performance prompt.
         </p>
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <div className="columns-1 md:columns-2 gap-8 space-y-8">
-          {prompts.map((prompt) => (
+          {sortedPrompts.map((prompt) => (
             <div key={prompt.id} className="break-inside-avoid">
               <PromptCard prompt={prompt} />
             </div>

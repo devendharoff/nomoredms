@@ -162,7 +162,8 @@ export const MOCK_TRENDING_PROMPTS: TrendingPrompt[] = [
     title: 'Cyberpunk Tokyo Rain',
     prompt: 'Cinematic wide shot of a neon-drenched Tokyo street at night, heavy rain, reflections on asphalt, hyper-detailed, 8k, shot on 35mm lens --ar 16:9 --v 6.0',
     thumbnail: 'https://images.unsplash.com/photo-1542332213-31f87348057f?q=80&w=800&auto=format&fit=crop',
-    model: 'Midjourney v6'
+    model: 'Midjourney v6',
+    likes: 124
   },
   {
     id: 'p2',
@@ -170,7 +171,8 @@ export const MOCK_TRENDING_PROMPTS: TrendingPrompt[] = [
     title: 'Fluid Gold Macro',
     prompt: 'Macro video of liquid gold swirling with black ink, slow motion, crystalline structures forming, golden hour lighting, 4k, cinematic movement.',
     thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=800&auto=format&fit=crop',
-    model: 'Veo 3.1'
+    model: 'Veo 3.1',
+    likes: 89
   }
 ];
 
