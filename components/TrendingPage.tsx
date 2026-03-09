@@ -17,15 +17,15 @@ const PromptCard = memo(({ prompt }: { prompt: TrendingPrompt }) => {
 
   return (
     <div className="group relative overflow-hidden rounded-[2rem] border border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-neutral-900/40 transition-all duration-500 hover:border-zinc-300 dark:hover:border-white/20 hover:bg-white dark:hover:bg-neutral-900/60 flex flex-col h-full backdrop-blur-xl">
-      <div className="relative aspect-video w-full overflow-hidden">
+      <div className="relative w-full overflow-hidden">
         <img
           src={prompt.thumbnail}
           alt={prompt.title}
           loading="lazy"
           decoding="async"
-          className="h-full w-full object-cover grayscale-[0.5] group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-110"
+          className="w-full h-auto grayscale-[0.5] group-hover:grayscale-0 transition-all duration-1000 scale-105 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
         <div className="absolute top-4 left-4 flex gap-2">
           <div className="flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 backdrop-blur-md border border-white/10">
@@ -55,7 +55,7 @@ const PromptCard = memo(({ prompt }: { prompt: TrendingPrompt }) => {
           {copied ? <><Check className="h-3.5 w-3.5" /> Copied to clipboard</> : <><Copy className="h-3.5 w-3.5" /> Copy Prompt</>}
         </button>
       </div>
-    </div>
+    </div >
   );
 });
 
@@ -111,16 +111,18 @@ const TrendingPage: React.FC<TrendingPageProps> = ({ prompts: initialPrompts }) 
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div className="columns-1 md:columns-2 gap-8 space-y-8">
           {prompts.map((prompt) => (
-            <PromptCard key={prompt.id} prompt={prompt} />
-          ))}
-          {prompts.length === 0 && (
-            <div className="col-span-full py-40 text-center">
-              <p className="text-zinc-500 font-black uppercase tracking-widest italic">The resources are currently empty. Check back later.</p>
+            <div key={prompt.id} className="break-inside-avoid">
+              <PromptCard prompt={prompt} />
             </div>
-          )}
+          ))}
         </div>
+        {prompts.length === 0 && (
+          <div className="py-40 text-center">
+            <p className="text-zinc-500 font-black uppercase tracking-widest italic">The resources are currently empty. Check back later.</p>
+          </div>
+        )}
       </div>
     </div>
   );
