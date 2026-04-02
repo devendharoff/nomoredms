@@ -4,6 +4,7 @@ export function mapCreator(dbCreator: any): Creator {
     const username = dbCreator.username || 'unknown';
     return {
         id: dbCreator.id,
+        userId: dbCreator.user_id,
         slug: dbCreator.slug || username.toLowerCase().replace(/\s+/g, '-'),
         username: username,
         displayName: dbCreator.display_name || dbCreator.username || 'Anonymous Creator',
@@ -28,6 +29,7 @@ export function mapResource(dbResource: any): Resource {
         thumbnail: dbResource.thumbnail || '',
         date: dbResource.created_at || new Date().toISOString(),
         url: dbResource.url || '#',
+        instagramPostUrl: dbResource.instagram_post_url,
         isHidden: !!dbResource.is_hidden,
         status: dbResource.status || 'pending',
         health: dbResource.health || 'ok',

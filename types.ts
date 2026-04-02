@@ -1,4 +1,3 @@
-
 export interface Resource {
   id: string;
   creatorId: string;
@@ -9,6 +8,7 @@ export interface Resource {
   thumbnail: string;
   date: string;
   url: string;
+  instagramPostUrl?: string;
   isHidden?: boolean;
   status?: 'pending' | 'live' | 'broken';
   health?: 'ok' | 'error';
@@ -16,6 +16,7 @@ export interface Resource {
 
 export interface Creator {
   id: string;
+  userId?: string;
   slug: string;
   username: string;
   displayName: string;

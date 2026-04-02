@@ -64,7 +64,13 @@ const ResourceCard = memo(({
           initial={{ opacity: 0 }}
           animate={{ opacity: imageLoaded ? 1 : 0 }}
           transition={{ duration: 0.4 }}
-          className="h-full w-full relative"
+          className={`h-full w-full relative ${resource.instagramPostUrl ? 'cursor-pointer' : ''}`}
+          onClick={(e) => {
+            if (resource.instagramPostUrl) {
+                e.stopPropagation();
+                window.open(resource.instagramPostUrl, '_blank');
+            }
+          }}
         >
           {resource.thumbnail ? (
             <Image
