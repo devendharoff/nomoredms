@@ -222,9 +222,14 @@ const ResourceCard = memo(({
   );
 }, (prev, next) =>
   prev.resource.id === next.resource.id &&
-  prev.creator?.id === next.creator?.id &&
   prev.resource.title === next.resource.title &&
-  prev.resource.description === next.resource.description
+  prev.resource.description === next.resource.description &&
+  prev.resource.thumbnail === next.resource.thumbnail &&
+  prev.resource.category === next.resource.category &&
+  JSON.stringify(prev.resource.tags) === JSON.stringify(next.resource.tags) &&
+  prev.creator?.id === next.creator?.id &&
+  prev.creator?.displayName === next.creator?.displayName &&
+  prev.creator?.profilePic === next.creator?.profilePic
 );
 
 export default ResourceCard;

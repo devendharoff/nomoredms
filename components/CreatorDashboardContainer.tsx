@@ -11,6 +11,8 @@ import {
     AlertCircle, Upload, Search
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useDashboardOperations } from '@/lib/hooks/useDashboardOperations';
+
 
 export default function CreatorDashboardContainer({ 
     creator, 
@@ -25,6 +27,15 @@ export default function CreatorDashboardContainer({
 }) {
     const supabase = createClient();
     const router = useRouter();
+    const { dropResource, updateProfile, loading: opLoading, error: opError } = useDashboardOperations();
+    
+    // Combine loading states
+    const [loading, setLoading] = useState(false);
+    useEffect(() => {
+        if (opLoading) setLoading(true);
+        else setLoading(false);
+    }, [opLoading]);
+
     
     const [activeTab, setActiveTab] = useState<'overview' | 'resources' | 'profile'>('overview');
     const [resources, setResources] = useState<Resource[]>(initialResources);
@@ -109,62 +120,53 @@ export default function CreatorDashboardContainer({
 
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true); setMessage('');
+        setMessage('');
 
         const socials = { ...creator.socials };
         if (profileForm.instagram) socials.instagram = profileForm.instagram;
         if (profileForm.youtube) socials.youtube = profileForm.youtube;
 
-        const { error } = await supabase
-            .from('creators')
-            .update({
-                display_name: profileForm.displayName,
-                slug: profileForm.slug,
-                bio: profileForm.bio,
-                profile_pic: profileForm.profilePic,
-                niche: profileForm.niche,
-                socials: socials
-            })
-            .eq('id', creator.id);
+        const result = await updateProfile(creator.id, {
+            ...profileForm,
+            socials
+        });
 
-        setLoading(false);
-        if (error) setMessage('Error saving profile: ' + error.message);
-        else { setMessage('Profile saved perfectly!'); router.refresh(); }
+        if (result) {
+            setMessage('Profile saved perfectly!');
+            router.refresh();
+        } else if (opError) {
+            setMessage('Error saving profile: ' + opError);
+        }
     };
+
 
     const handleAddResource = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true); setMessage('');
+        setMessage('');
 
         const tagsArray = resourceForm.tags.split(',').map(t => t.trim()).filter(Boolean);
-        const newResource = {
-            creator_id: creator.id,
-            title: resourceForm.title,
-            description: resourceForm.description,
-            url: resourceForm.url,
-            thumbnail: resourceForm.thumbnail,
-            instagram_post_url: resourceForm.instagramPostUrl,
-            category: resourceForm.category,
-            tags: tagsArray,
-            status: 'live', health: 'ok'
+        const resourceData = {
+            ...resourceForm,
+            tags: tagsArray
         };
 
-        const { data, error } = await supabase
-            .from('resources')
-            .insert(newResource)
-            .select()
-            .single();
+        const result = await dropResource(creator.id, resourceData);
 
-        setLoading(false);
-        if (error) setMessage('Error adding resource: ' + error.message);
-        else {
+        if (result) {
             setMessage('Resource dropped successfully!');
             setResourceForm({ title: '', description: '', url: '', thumbnail: '', instagramPostUrl: '', category: categories[0]?.slug || 'Other', tags: '' });
             setIsAddingResource(false);
-            setResources([data as Resource, ...resources]);
+            
+            // Optimistic local update (though Realtime will also trigger)
+            setResources(prev => [result, ...prev]);
+            
+            // Refresh to ensure all server-side caches are cleared
             router.refresh();
+        } else if (opError) {
+            setMessage('Error adding resource: ' + opError);
         }
     };
+
 
     const TabButton = ({ value, icon: Icon, label }: any) => (
         <button

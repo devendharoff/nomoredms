@@ -17,8 +17,9 @@ import dynamic from 'next/dynamic';
 
 const AnoAI = dynamic(() => import('./ui/animated-shader-background'), { ssr: false });
 const MobileSearchOverlay = dynamic(() => import('./MobileSearchOverlay'), { ssr: false });
-import { createClient } from '@/utils/supabase/client';
 import { mapCreator, mapResource } from '@/lib/mappers';
+import { useRealtime } from '@/lib/hooks/useRealtime';
+
 
 import { Zap, ChevronDown, Sparkles, ArrowRight, Users } from 'lucide-react';
 import { Resource, Creator, TrendingPrompt } from '@/types';
@@ -39,8 +40,9 @@ export default function HomeContent({
     const router = useRouter();
 
     // State
-    const [creators, setCreators] = useState<Creator[]>(initialCreators);
-    const [resources, setResources] = useState<Resource[]>(initialResources);
+    // Resources and Creators are now managed by the Real-time Pipeline
+    // State is moved into useRealtime hooks below
+
 
     // Simplified launch state
     const [hasLaunched, setHasLaunched] = useState(launchedByParams);
@@ -55,90 +57,44 @@ export default function HomeContent({
         }
     }, [launchedByParams]);
 
-    // Real-time Subscriptions
-    useEffect(() => {
-        const supabase = createClient();
-
-        // Subscribe to resources
-        const resourcesChannel = supabase
-            .channel('public:resources')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'resources' },
-                (payload) => {
-                    if (payload.eventType === 'INSERT') {
-                        const newResource = mapResource(payload.new);
-                        setResources(prev => {
-                            // Prevent duplicates and only add live items
-                            if (prev.some(r => r.id === newResource.id) || newResource.status !== 'live' || newResource.isHidden) return prev;
-
-                            // If we were showing mocks, clear them first if this is the first real item
-                            const isFirstReal = prev.some(r => typeof r.id === 'string' && r.id.startsWith('p'));
-                            const filtered = isFirstReal ? prev.filter(r => !r.id.toString().startsWith('p')) : prev;
-
-                            return [newResource, ...filtered];
-                        });
-                    } else if (payload.eventType === 'UPDATE') {
-                        const updatedResource = mapResource(payload.new);
-                        setResources(prev => {
-                            const exists = prev.some(r => r.id === updatedResource.id);
-                            if (!exists) {
-                                // If it didn't exist but is now live, add it
-                                if (updatedResource.status === 'live' && !updatedResource.isHidden) return [updatedResource, ...prev];
-                                return prev;
-                            }
-                            // If hidden or not live, remove it
-                            if (updatedResource.status !== 'live' || updatedResource.isHidden) return prev.filter(r => r.id !== updatedResource.id);
-                            return prev.map(r => r.id === updatedResource.id ? updatedResource : r);
-                        });
-                    } else if (payload.eventType === 'DELETE') {
-                        setResources(prev => prev.filter(r => r.id !== payload.old.id));
-                    }
+    // Real-time Pipeline for Resources
+    const [resources, setResources] = useRealtime<Resource>(
+        'resources',
+        initialResources,
+        mapResource,
+        {
+            shouldUpdate: (r) => r.status === 'live' && !r.isHidden,
+            onEvent: (payload) => {
+                // Feature: Auto-clear mocks when real data arrives
+                if (payload.eventType === 'INSERT') {
+                    setResources(prev => {
+                        const isShowingMocks = prev.some(r => typeof r.id === 'string' && r.id.startsWith('p'));
+                        return isShowingMocks ? prev.filter(r => !r.id.toString().startsWith('p')) : prev;
+                    });
                 }
-            )
-            .subscribe();
+            }
+        }
+    );
 
-        // Subscribe to creators
-        const creatorsChannel = supabase
-            .channel('public:creators')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'creators' },
-                (payload) => {
-                    if (payload.eventType === 'INSERT') {
-                        const newCreator = mapCreator(payload.new);
-                        setCreators(prev => {
-                            if (prev.some(c => c.id === newCreator.id) || newCreator.isHidden) return prev;
-
-                            // Clear mocks if needed
-                            const isShowingMocks = prev.some(c => typeof c.id === 'string' && c.id.startsWith('c'));
-                            const base = isShowingMocks ? prev.filter(c => !c.id.toString().startsWith('c')) : prev;
-
-                            return [newCreator, ...base];
-                        });
-                    } else if (payload.eventType === 'UPDATE') {
-                        const updatedCreator = mapCreator(payload.new);
-                        setCreators(prev => {
-                            const exists = prev.some(c => c.id === updatedCreator.id);
-                            if (!exists) {
-                                if (!updatedCreator.isHidden) return [updatedCreator, ...prev];
-                                return prev;
-                            }
-                            if (updatedCreator.isHidden) return prev.filter(c => c.id !== updatedCreator.id);
-                            return prev.map(c => c.id === updatedCreator.id ? updatedCreator : c);
-                        });
-                    } else if (payload.eventType === 'DELETE') {
-                        setCreators(prev => prev.filter(c => c.id !== payload.old.id));
-                    }
+    // Real-time Pipeline for Creators
+    const [creators, setCreators] = useRealtime<Creator>(
+        'creators',
+        initialCreators,
+        mapCreator,
+        {
+            shouldUpdate: (c) => !c.isHidden,
+            onEvent: (payload) => {
+                // Feature: Auto-clear mocks when real data arrives
+                if (payload.eventType === 'INSERT') {
+                    setCreators(prev => {
+                        const isShowingMocks = prev.some(c => typeof c.id === 'string' && c.id.startsWith('c'));
+                        return isShowingMocks ? prev.filter(c => !c.id.toString().startsWith('c')) : prev;
+                    });
                 }
-            )
-            .subscribe();
+            }
+        }
+    );
 
-        return () => {
-            supabase.removeChannel(resourcesChannel);
-            supabase.removeChannel(creatorsChannel);
-        };
-    }, []);
 
     const [viewMode, setViewMode] = useState<'resources' | 'creators'>('resources');
     const [selectedCreatorSlug, setSelectedCreatorSlug] = useState<string | null>(null);
