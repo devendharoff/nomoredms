@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/utils/supabase/client';
 import { Creator, Resource, Category, Niche } from '@/types';
+import { mapResource } from '@/lib/mappers';
 import { 
     Plus, Save, LogOut, Link as LinkIcon, Image as ImageIcon, Settings, 
     Grid, Instagram, Youtube, Copy, CheckCircle2, TrendingUp, 
@@ -58,9 +59,57 @@ export default function CreatorDashboardContainer({
     });
     const [message, setMessage] = useState('');
     const [copied, setCopied] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     
     // Random fake metric just for the UI showcase (simulates traction tracking)
     const [fakeViews] = useState(Math.floor(Math.random() * 800) + 200);
+
+    // Real-time Subscriptions for Creator
+    useEffect(() => {
+        // Resources subscription
+        const resourcesChannel = supabase
+            .channel(`creator:${creator.id}:resources`)
+            .on('postgres_changes', 
+                { event: '*', schema: 'public', table: 'resources', filter: `creator_id=eq.${creator.id}` }, 
+                (payload) => {
+                    if (payload.eventType === 'INSERT') {
+                        const mapped = mapResource(payload.new);
+                        setResources(prev => [mapped, ...prev.filter(r => r.id !== mapped.id)]);
+                    } else if (payload.eventType === 'UPDATE') {
+                        const mapped = mapResource(payload.new);
+                        setResources(prev => prev.map(r => r.id === mapped.id ? mapped : r));
+                    } else if (payload.eventType === 'DELETE') {
+                        setResources(prev => prev.filter(r => r.id !== payload.old.id));
+                    }
+                }
+            )
+            .subscribe();
+
+        // Creator Profile subscription
+        const profileChannel = supabase
+            .channel(`creator:${creator.id}:profile`)
+            .on('postgres_changes', 
+                { event: 'UPDATE', schema: 'public', table: 'creators', filter: `id=eq.${creator.id}` }, 
+                (payload) => {
+                    setProfileForm(prev => ({
+                        ...prev,
+                        displayName: payload.new.display_name,
+                        slug: payload.new.slug,
+                        bio: payload.new.bio,
+                        profilePic: payload.new.profile_pic,
+                        niche: payload.new.niche,
+                        instagram: payload.new.socials?.instagram || '',
+                        youtube: payload.new.socials?.youtube || ''
+                    }));
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(resourcesChannel);
+            supabase.removeChannel(profileChannel);
+        };
+    }, [creator.id, supabase]);
 
     const completionScore = () => {
         let score = 0; let total = 6;
@@ -98,8 +147,11 @@ export default function CreatorDashboardContainer({
             if (uploadError) throw uploadError;
 
             const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+            setUploadProgress(100);
+            setTimeout(() => setUploadProgress(0), 1000);
             return data.publicUrl;
         } catch (error: any) {
+            setUploadProgress(0);
             console.error('Error uploading file:', error);
             setMessage('Error uploading file: ' + error.message);
             return null;
@@ -109,6 +161,7 @@ export default function CreatorDashboardContainer({
     const processFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, bucket: 'avatars' | 'thumbnails', callback: (url: string) => void) => {
         if (e.target.files && e.target.files[0]) {
             setLoading(true);
+            setUploadProgress(10);
             const file = e.target.files[0];
             const url = await handleUploadFile(file, bucket);
             if (url) callback(url);
@@ -180,6 +233,13 @@ export default function CreatorDashboardContainer({
         </button>
     );
 
+    const RealtimeIndicator = () => (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/50 border border-white/5 backdrop-blur-md">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+            <span className="text-[9px] font-black uppercase tracking-[0.1em] text-zinc-400">Realtime Sync Active</span>
+        </div>
+    );
+
     return (
         <div className="max-w-7xl mx-auto px-4 py-16 sm:py-24 relative">
             {/* Background Glows */}
@@ -231,12 +291,15 @@ export default function CreatorDashboardContainer({
                     <TabButton value="profile" icon={Settings} label="Brand Kit" />
                 </div>
                 
-                <button 
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-zinc-900/50 backdrop-blur-md border border-white/10 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all font-bold text-xs tracking-widest uppercase w-full sm:w-auto justify-center"
-                >
-                    <LogOut className="w-4 h-4" /> Exit
-                </button>
+                <div className="flex items-center gap-4">
+                    <RealtimeIndicator />
+                    <button 
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-zinc-900/50 backdrop-blur-md border border-white/10 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/30 transition-all font-bold text-xs tracking-widest uppercase w-full sm:w-auto justify-center"
+                    >
+                        <LogOut className="w-4 h-4" /> Exit
+                    </button>
+                </div>
             </div>
 
             {/* Global Notification system */}
@@ -359,7 +422,14 @@ export default function CreatorDashboardContainer({
                                                         <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover/btn:text-white">Upload from Device</span>
                                                         <input type="file" className="hidden" accept="image/*" onChange={(e) => processFileUpload(e, 'avatars', (url) => setProfileForm({...profileForm, profilePic: url }))} />
                                                     </label>
-                                                    {loading && <div className="w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />}
+                                                    {loading && (
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+                                                                <motion.div initial={{ width: 0 }} animate={{ width: `${uploadProgress}%` }} className="h-full bg-green-500" />
+                                                            </div>
+                                                            <div className="w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -495,7 +565,14 @@ export default function CreatorDashboardContainer({
                                                         <span className="text-[9px] font-black uppercase tracking-widest text-green-400">Image Synced</span>
                                                     </div>
                                                 )}
-                                                {loading && <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />}
+                                                {loading && (
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+                                                            <motion.div initial={{ width: 0 }} animate={{ width: `${uploadProgress}%` }} className="h-full bg-green-500" />
+                                                        </div>
+                                                        <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

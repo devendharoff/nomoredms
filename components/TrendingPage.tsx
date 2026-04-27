@@ -32,7 +32,7 @@ const PromptCard = memo(({ prompt }: { prompt: TrendingPrompt }) => {
       const supabase = createClient();
       const { error } = await supabase
         .from('trending_prompts')
-        .update({ likes: likes + 1 })
+        .update({ likes: likes + 1 } as any)
         .eq('id', prompt.id);
 
       if (!error) {

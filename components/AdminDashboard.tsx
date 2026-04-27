@@ -70,6 +70,10 @@ interface AdminDashboardProps {
   onAddCategory?: (name: string) => void;
   onAddNiche?: (name: string) => void;
   onUpdateAdminRequest?: (id: string, status: 'approved' | 'rejected') => void;
+  uploadProgress?: number;
+  isUploading?: boolean;
+  setIsUploading?: (val: boolean) => void;
+  setUploadProgress?: (val: number) => void;
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -96,7 +100,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUploadFile,
   onAddCategory,
   onAddNiche,
-  onUpdateAdminRequest
+  onUpdateAdminRequest,
+  uploadProgress = 0,
+  isUploading = false,
+  setIsUploading,
+  setUploadProgress
 }) => {
   const [activeTab, setActiveTab] = useState<'staging' | 'rolodex' | 'fixer' | 'manual' | 'prompts' | 'access' | 'bulk' | 'audit' | 'taxonomy'>('staging');
   const [editingItem, setEditingItem] = useState<Resource | null>(null);
@@ -157,6 +165,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const processFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, bucket: 'avatars' | 'thumbnails', callback: (url: string) => void) => {
     if (e.target.files && e.target.files[0] && onUploadFile) {
+      if (setIsUploading) setIsUploading(true);
+      if (setUploadProgress) setUploadProgress(10);
       const file = e.target.files[0];
       const url = await onUploadFile(file, bucket);
       if (url) callback(url);
@@ -198,8 +208,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 font-sans antialiased">
-      {/* Header with Logout */}
-      <div className="flex justify-end mb-8">
+      {/* Header with Logout and Realtime Indicator */}
+      <div className="flex justify-end items-center gap-6 mb-8">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/50 border border-white/5 backdrop-blur-md">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+            <span className="text-[9px] font-black uppercase tracking-[0.1em] text-zinc-400">Realtime Sync Active</span>
+        </div>
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
@@ -449,7 +463,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <input type="file" className="hidden" accept="image/*,video/*" onChange={(e) => processFileUpload(e, 'thumbnails', (url) => setNewPrompt({ ...newPrompt, thumbnail: url }))} />
                       <ImageIcon className="h-4 w-4 text-neutral-400" />
                     </label>
-                    <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider">Or Upload File</p>
+                    <div className="flex flex-col gap-1">
+                      <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider">Or Upload File</p>
+                      {isUploading && (
+                        <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${uploadProgress}%` }} className="h-full bg-orange-500" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <input value={newPrompt.model} onChange={e => setNewPrompt({ ...newPrompt, model: e.target.value })} placeholder="Model (e.g. Midjourney v6)" className="w-full bg-black border border-white/5 rounded-2xl p-5 text-sm font-bold text-white focus:border-orange-500 outline-none transition-all shadow-inner" required />
                   <button type="submit" className="w-full bg-white text-black py-6 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-neutral-200 transition-all active:scale-95 shadow-2xl flex items-center justify-center gap-4"><Send className="h-4 w-4" /> Deploy to Feed</button>
@@ -616,7 +637,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <p className="text-[10px] text-green-500 font-black uppercase tracking-wider">Image Loaded</p>
                       </div>
                     ) : (
-                      <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider">Or Upload Avatar</p>
+                      <div className="flex flex-col gap-2">
+                        <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider">Or Upload Avatar</p>
+                        {isUploading && (
+                          <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${uploadProgress}%` }} className="h-full bg-blue-500" />
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                   <button type="submit" className="w-full bg-white text-black py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neutral-200 transition-all active:scale-95 shadow-2xl">Create Profile</button>
@@ -892,7 +920,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
                         </div>
                       ) : (
-                        <p className="text-[10px] text-neutral-500 uppercase font-black tracking-widest">Select Image from disk</p>
+                        <div className="flex flex-col gap-2">
+                           <p className="text-[10px] text-neutral-500 uppercase font-black tracking-widest">Select Image from disk</p>
+                           {isUploading && (
+                             <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden">
+                               <motion.div initial={{ width: 0 }} animate={{ width: `${uploadProgress}%` }} className="h-full bg-green-500" />
+                             </div>
+                           )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1201,6 +1236,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <div className="flex items-center gap-4">
                           <img src={editingCreator.profilePic} className="h-10 w-10 rounded-full object-cover border border-white/10" alt="Preview" />
                           <p className="text-[10px] text-green-500 font-black uppercase tracking-wider">Sync Successful</p>
+                        </div>
+                      )}
+                      {isUploading && !editingCreator.profilePic && (
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] text-neutral-500 uppercase font-black tracking-widest">Uploading Avatar...</p>
+                          <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${uploadProgress}%` }} className="h-full bg-blue-500" />
+                          </div>
                         </div>
                       )}
                     </div>

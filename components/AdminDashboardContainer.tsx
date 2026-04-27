@@ -34,6 +34,8 @@ export default function AdminDashboardContainer({
     const [niches, setNiches] = useState<any[]>(initialNiches);
     const [auditLogs, setAuditLogs] = useState<any[]>([]);
     const [adminRequests, setAdminRequests] = useState<any[]>([]);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
 
 
     const supabase = createClient();
@@ -106,11 +108,44 @@ export default function AdminDashboardContainer({
             if (data) setAdminRequests(data);
         });
 
+        // Categories
+        const categoriesChannel = supabase
+            .channel('admin:categories')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, (payload) => {
+                if (payload.eventType === 'INSERT') setCategories(prev => [...prev, payload.new]);
+                else if (payload.eventType === 'UPDATE') setCategories(prev => prev.map(c => c.id === payload.new.id ? payload.new : c));
+                else if (payload.eventType === 'DELETE') setCategories(prev => prev.filter(c => c.id !== payload.old.id));
+            })
+            .subscribe();
+
+        // Niches
+        const nichesChannel = supabase
+            .channel('admin:niches')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'niches' }, (payload) => {
+                if (payload.eventType === 'INSERT') setNiches(prev => [...prev, payload.new]);
+                else if (payload.eventType === 'UPDATE') setNiches(prev => prev.map(n => n.id === payload.new.id ? payload.new : n));
+                else if (payload.eventType === 'DELETE') setNiches(prev => prev.filter(n => n.id !== payload.old.id));
+            })
+            .subscribe();
+
+        // Admin Requests
+        const requestsChannel = supabase
+            .channel('admin:requests')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_requests' }, (payload) => {
+                if (payload.eventType === 'INSERT') setAdminRequests(prev => [payload.new, ...prev]);
+                else if (payload.eventType === 'UPDATE') setAdminRequests(prev => prev.map(r => r.id === payload.new.id ? payload.new : r));
+                else if (payload.eventType === 'DELETE') setAdminRequests(prev => prev.filter(r => r.id !== payload.old.id));
+            })
+            .subscribe();
+
         return () => {
             supabase.removeChannel(resourcesChannel);
             supabase.removeChannel(creatorsChannel);
             supabase.removeChannel(promptsChannel);
             supabase.removeChannel(auditChannel);
+            supabase.removeChannel(categoriesChannel);
+            supabase.removeChannel(nichesChannel);
+            supabase.removeChannel(requestsChannel);
         };
     }, []);
 
@@ -129,8 +164,15 @@ export default function AdminDashboardContainer({
             }
 
             const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+            setUploadProgress(100);
+            setTimeout(() => {
+                setUploadProgress(0);
+                setIsUploading(false);
+            }, 1000);
             return data.publicUrl;
         } catch (error) {
+            setUploadProgress(0);
+            setIsUploading(false);
             console.error('Error uploading file:', error);
             alert('Error uploading file. Check console for details.');
             return null;
@@ -404,6 +446,10 @@ export default function AdminDashboardContainer({
             onAddCategory={handleAddCategory}
             onAddNiche={handleAddNiche}
             onUpdateAdminRequest={handleUpdateAdminRequest}
+            uploadProgress={uploadProgress}
+            isUploading={isUploading}
+            setIsUploading={setIsUploading}
+            setUploadProgress={setUploadProgress}
         />
     );
 
