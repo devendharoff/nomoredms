@@ -18,16 +18,16 @@ export default async function BlogPage() {
 
     const posts: BlogPost[] = (rawPosts || []).map(p => ({
         id: p.id,
-        title: p.title,
-        slug: p.slug,
-        content: p.content,
-        excerpt: p.excerpt,
-        category: p.category,
-        thumbnailUrl: p.thumbnail_url,
-        isPublished: p.is_published,
-        publishedAt: p.published_at,
+        title: p.title || 'Untitled Post',
+        slug: p.slug || '',
+        content: p.content || '',
+        excerpt: p.excerpt || '',
+        category: p.category || 'Uncategorized',
+        thumbnailUrl: p.thumbnail_url || undefined,
+        isPublished: p.is_published ?? false,
+        publishedAt: p.published_at || null,
         createdAt: p.created_at,
-        authorId: p.author_id
+        authorId: p.author_id || undefined
     }));
 
     return (

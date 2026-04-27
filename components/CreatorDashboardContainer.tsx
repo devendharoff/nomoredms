@@ -56,8 +56,6 @@ export default function CreatorDashboardContainer({
     const [resourceForm, setResourceForm] = useState({
         title: '', description: '', url: '', thumbnail: '', instagramPostUrl: '', category: categories[0]?.slug || 'Other', tags: ''
     });
-
-    const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [copied, setCopied] = useState(false);
     

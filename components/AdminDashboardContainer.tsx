@@ -23,13 +23,17 @@ export default function AdminDashboardContainer({
     initialPrompts,
     initialProfiles,
     totalClicks,
-    categories,
-    niches
+    categories: initialCategories,
+    niches: initialNiches
 }: StatsProps) {
     const [creators, setCreators] = useState<Creator[]>(initialCreators);
     const [resources, setResources] = useState<Resource[]>(initialResources);
     const [prompts, setPrompts] = useState<TrendingPrompt[]>(initialPrompts);
     const [profiles, setProfiles] = useState<Profile[]>(initialProfiles);
+    const [categories, setCategories] = useState<any[]>(initialCategories);
+    const [niches, setNiches] = useState<any[]>(initialNiches);
+    const [auditLogs, setAuditLogs] = useState<any[]>([]);
+    const [adminRequests, setAdminRequests] = useState<any[]>([]);
 
 
     const supabase = createClient();
@@ -84,10 +88,29 @@ export default function AdminDashboardContainer({
             })
             .subscribe();
 
+        // Audit Logs
+        const auditChannel = supabase
+            .channel('admin:audit')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_audit_log' }, (payload) => {
+                setAuditLogs(prev => [payload.new, ...prev].slice(0, 50));
+            })
+            .subscribe();
+
+        // Fetch Audit Logs
+        supabase.from('admin_audit_log').select('*').order('created_at', { ascending: false }).limit(50).then(({ data }) => {
+            if (data) setAuditLogs(data);
+        });
+
+        // Fetch Admin Requests
+        supabase.from('admin_requests').select('*').order('created_at', { ascending: false }).then(({ data }) => {
+            if (data) setAdminRequests(data);
+        });
+
         return () => {
             supabase.removeChannel(resourcesChannel);
             supabase.removeChannel(creatorsChannel);
             supabase.removeChannel(promptsChannel);
+            supabase.removeChannel(auditChannel);
         };
     }, []);
 
@@ -122,6 +145,7 @@ export default function AdminDashboardContainer({
             creatorId: newR.creatorId || '',
             title: newR.title || 'Untitled',
             category: newR.category || 'AI Tools',
+            categoryId: newR.categoryId,
             tags: newR.tags || [],
             thumbnail: newR.thumbnail || 'https://picsum.photos/600/400',
             date: new Date().toISOString(),
@@ -140,6 +164,7 @@ export default function AdminDashboardContainer({
             title: resource.title,
             description: resource.description,
             category: resource.category,
+            category_id: resource.categoryId,
             tags: resource.tags,
             thumbnail: resource.thumbnail,
             url: resource.url,
@@ -165,6 +190,7 @@ export default function AdminDashboardContainer({
         if (updates.title !== undefined) dbUpdates.title = updates.title;
         if (updates.description !== undefined) dbUpdates.description = updates.description;
         if (updates.category !== undefined) dbUpdates.category = updates.category;
+        if (updates.categoryId !== undefined) dbUpdates.category_id = updates.categoryId;
         if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
         if (updates.thumbnail !== undefined) dbUpdates.thumbnail = updates.thumbnail;
         if (updates.url !== undefined) dbUpdates.url = updates.url;
@@ -205,6 +231,7 @@ export default function AdminDashboardContainer({
             username: newC.username || 'unknown',
             display_name: newC.displayName || 'Anonymous Creator',
             niche: newC.niche || 'Other',
+            niche_id: newC.nicheId,
             profile_pic: newC.profilePic || '',
             bio: newC.bio || '',
             is_hidden: false,
@@ -231,6 +258,7 @@ export default function AdminDashboardContainer({
         if (updates.username !== undefined) dbUpdates.username = updates.username;
         if (updates.displayName !== undefined) dbUpdates.display_name = updates.displayName;
         if (updates.niche !== undefined) dbUpdates.niche = updates.niche;
+        if (updates.nicheId !== undefined) dbUpdates.niche_id = updates.nicheId;
         if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
         if (updates.profilePic !== undefined) dbUpdates.profile_pic = updates.profilePic;
         if (updates.isVerified !== undefined) dbUpdates.is_verified = updates.isVerified;
@@ -255,7 +283,7 @@ export default function AdminDashboardContainer({
         const prompt = { ...newP, id: tempId } as TrendingPrompt;
         setPrompts(prev => [prompt, ...prev]);
 
-        const { data, error } = await supabase.from('trending_prompts').insert([newP]).select().single();
+        const { data, error } = await supabase.from('trending_prompts').insert([newP as any]).select().single();
         if (data) {
             setPrompts(prev => prev.map(p => p.id === tempId ? { ...p, id: data.id } : p));
         } else if (error) {
@@ -280,6 +308,26 @@ export default function AdminDashboardContainer({
             console.error('Error updating profile:', error);
             alert('Failed to update profile role.');
         }
+    };
+
+    const handleAddCategory = async (name: string) => {
+        const slug = name.toLowerCase().replace(/\s+/g, '-');
+        const { data, error } = await supabase.from('categories').insert([{ name, slug }]).select().single();
+        if (data) setCategories(prev => [...prev, data]);
+        else if (error) alert(error.message);
+    };
+
+    const handleAddNiche = async (name: string) => {
+        const slug = name.toLowerCase().replace(/\s+/g, '-');
+        const { data, error } = await supabase.from('niches').insert([{ name, slug }]).select().single();
+        if (data) setNiches(prev => [...prev, data]);
+        else if (error) alert(error.message);
+    };
+
+    const handleUpdateAdminRequest = async (id: string, status: 'approved' | 'rejected') => {
+        const { error } = await supabase.from('admin_requests').update({ status }).eq('id', id);
+        if (error) alert(error.message);
+        else setAdminRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
     };
 
     const handleBulkUpload = async (type: 'creators' | 'resources', data: any[]) => {
@@ -339,6 +387,8 @@ export default function AdminDashboardContainer({
             totalClicks={totalClicks}
             dbCategories={categories}
             dbNiches={niches}
+            auditLogs={auditLogs}
+            adminRequests={adminRequests}
             onAddResource={handleAddResource}
             onAddCreator={handleAddCreator}
             onAddPrompt={handleAddPrompt}
@@ -351,6 +401,9 @@ export default function AdminDashboardContainer({
             onUploadFile={handleUploadFile}
             onUpdateProfile={handleUpdateProfile}
             onBulkUpload={handleBulkUpload}
+            onAddCategory={handleAddCategory}
+            onAddNiche={handleAddNiche}
+            onUpdateAdminRequest={handleUpdateAdminRequest}
         />
     );
 

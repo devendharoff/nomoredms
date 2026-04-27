@@ -12,6 +12,7 @@ export interface Resource {
   isHidden?: boolean;
   status?: 'pending' | 'live' | 'broken';
   health?: 'ok' | 'error';
+  categoryId?: string;
 }
 
 export interface Creator {
@@ -25,6 +26,7 @@ export interface Creator {
   isVerified: boolean;
   isHidden?: boolean;
   niche?: string;
+  nicheId?: string;
   followersCount: number;
   socials: {
     instagram?: string;

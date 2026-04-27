@@ -31,29 +31,23 @@ export default function AdminPortalPage() {
         setMessage(null);
 
         try {
-            // 1. Database Verification (Isolated Admin Layer)
-            const { data, error: queryError } = await supabase
-                .from('admin_accounts')
-                .select('*')
-                .eq('username', email)
-                .eq('password_hash', password)
-                .eq('is_active', true)
-                .single();
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
 
-            if (queryError || !data) {
-                setMessage({ type: 'error', text: 'INVALID OPERATIVE ID OR SECURITY KEY.' });
+            if (error) {
+                setMessage({ type: 'error', text: error.message.toUpperCase() });
                 setLoading(false);
                 return;
             }
 
-            // 3. Success: Set Isolated Session Cookie
-            const sessionValue = `ADMIN_SID_${Buffer.from(`${data.id}:${new Date().getTime()}`).toString('base64')}`;
-            document.cookie = `admin_resource_access=${sessionValue}; path=/; max-age=86400; SameSite=Strict`;
-
+            // Middleware will handle role verification upon redirect
             setMessage({ type: 'success', text: 'IDENTITY VERIFIED. Initializing Command Center...' });
 
             setTimeout(() => {
-                router.push('/admin');
+                const next = searchParams.get('next') || '/admin';
+                router.push(next);
                 router.refresh();
             }, 1000);
 

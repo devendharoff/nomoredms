@@ -105,7 +105,12 @@ export default function CreatorProfileContent({
             </div>
 
             <MobileNav onOpenSearch={() => setIsMobileSearchOpen(true)} />
-            <MobileSearchOverlay isOpen={isMobileSearchOpen} onClose={() => setIsMobileSearchOpen(false)} onSearch={() => { }} />
+            <MobileSearchOverlay 
+                isOpen={isMobileSearchOpen} 
+                onClose={() => setIsMobileSearchOpen(false)} 
+                onSearch={(term) => router.push(`/?search=${encodeURIComponent(term)}`)} 
+                currentSearchTerm=""
+            />
         </div>
     );
 }

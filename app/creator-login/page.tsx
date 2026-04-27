@@ -3,14 +3,17 @@
 import React, { useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Zap, ShieldCheck } from 'lucide-react';
+import { Zap, ShieldCheck, Mail, Lock, ArrowLeft, Chrome, Github, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function CreatorLoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'error' | 'success', text: string } | null>(null);
+    const [isSignUp, setIsSignUp] = useState(false);
+    
     const router = useRouter();
     const searchParams = useSearchParams();
     const next = searchParams.get('next') || '/dashboard/creator';
@@ -43,14 +46,14 @@ export default function CreatorLoginPage() {
         }
     };
 
-    const [isSignUp, setIsSignUp] = useState(false);
-
     const handleEmailAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             setLoading(true);
+            setMessage(null);
+            
             if (isSignUp) {
-                const { error, data } = await supabase.auth.signUp({
+                const { error } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
@@ -83,112 +86,165 @@ export default function CreatorLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4">
-            <Link href="/" className="fixed top-6 left-6 z-50 p-2 bg-black/50 backdrop-blur-md rounded-full border border-white/10 hover:bg-white/10 transition">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+            {/* Background Aesthetics */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full animate-pulse" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-green-500/10 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_0%,transparent_70%)]" />
+            </div>
+
+            <Link 
+                href="/" 
+                className="fixed top-8 left-8 z-50 group flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-xl rounded-full border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all active:scale-95"
+            >
+                <ArrowLeft className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
+                <span className="text-xs font-black uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">Home</span>
             </Link>
 
-            <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in-95 duration-500">
-                <div className="text-center">
-                    <div className="inline-flex items-center justify-center p-4 bg-green-900/40 rounded-3xl mb-6 shadow-2xl border border-green-500/20">
-                        <Zap className="h-10 w-10 text-green-500 fill-current" />
-                    </div>
-                    <h2 className="text-3xl font-black tracking-tighter uppercase mb-2">
-                        {isSignUp ? 'Apply as Creator' : 'Creator Portal'}
-                    </h2>
-                    <p className="text-zinc-500 font-medium">
-                        {isSignUp ? 'Create your creator account to share resources' : 'Manage your dedicated dashboard'}
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="w-full max-w-md relative z-10"
+            >
+                {/* Logo Section */}
+                <div className="text-center mb-8">
+                    <motion.div 
+                        whileHover={{ scale: 1.05, rotate: 5 }}
+                        className="inline-flex items-center justify-center p-5 bg-gradient-to-br from-emerald-500/20 to-green-600/20 rounded-[2.5rem] mb-6 shadow-[0_0_50px_rgba(16,185,129,0.1)] border border-emerald-500/30 group relative overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Zap className="h-10 w-10 text-emerald-400 fill-emerald-400/20 relative z-10" />
+                    </motion.div>
+                    
+                    <h1 className="text-4xl font-black tracking-tighter uppercase mb-3 bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
+                        {isSignUp ? 'Creator Application' : 'Creator Portal'}
+                    </h1>
+                    <p className="text-zinc-500 font-medium tracking-tight">
+                        {isSignUp ? 'Join our elite network of resource creators' : 'Securely access your operation dashboard'}
                     </p>
                 </div>
 
-                <div className="bg-zinc-900/50 backdrop-blur-xl border border-white/10 rounded-[2rem] p-8 shadow-xl">
-                    {message && (
-                        <div className={`mb-6 p-4 rounded-xl text-sm font-bold ${message.type === 'error' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
-                            {message.text}
-                        </div>
-                    )}
+                {/* Login Card */}
+                <div className="bg-zinc-900/40 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-1 shadow-2xl overflow-hidden group">
+                    <div className="bg-zinc-950/50 rounded-[2.4rem] p-8 sm:p-10 relative overflow-hidden">
+                        {/* Internal Glow */}
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/5 blur-[60px] rounded-full pointer-events-none" />
+                        
+                        <AnimatePresence mode="wait">
+                            {message && (
+                                <motion.div 
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className={`mb-6 p-4 rounded-2xl text-xs font-black uppercase tracking-widest border flex items-center gap-3 ${
+                                        message.type === 'error' 
+                                        ? 'bg-red-500/10 text-red-500 border-red-500/20' 
+                                        : 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                    }`}
+                                >
+                                    {message.type === 'error' ? <ShieldCheck className="w-4 h-4 shrink-0" /> : <Sparkles className="w-4 h-4 shrink-0" />}
+                                    {message.text}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                    <button
-                        onClick={handleGoogleLogin}
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-3 bg-white text-black font-bold py-4 rounded-xl hover:bg-zinc-200 transition-colors mb-6 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {loading ? (
-                            <div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                        ) : (
-                            <>
-                                <img src="https://www.google.com/favicon.ico" alt="" className="h-4 w-4" />
-                                {isSignUp ? 'Start with Google' : 'Login with Google'}
-                            </>
-                        )}
-                    </button>
+                        <div className="space-y-6 relative z-10">
+                            {/* Social Logins */}
+                            <button
+                                onClick={handleGoogleLogin}
+                                disabled={loading}
+                                className="w-full flex items-center justify-center gap-3 bg-white text-black font-black uppercase tracking-[0.15em] text-xs py-5 rounded-2xl hover:bg-zinc-200 transition-all active:scale-[0.98] disabled:opacity-50 group/google shadow-xl"
+                            >
+                                {loading ? (
+                                    <div className="h-5 w-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        <Chrome className="h-4 w-4 transition-transform group-hover/google:rotate-12" />
+                                        {isSignUp ? 'Join with Google' : 'Verify with Google'}
+                                    </>
+                                )}
+                            </button>
 
-                    <div className="relative mb-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-white/10"></div>
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase tracking-widest font-black">
-                            <span className="bg-zinc-900/50 px-4 text-zinc-500">Or continue with email</span>
-                        </div>
-                    </div>
+                            <div className="relative flex items-center py-2">
+                                <div className="flex-grow border-t border-white/5"></div>
+                                <span className="flex-shrink mx-4 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">OR</span>
+                                <div className="flex-grow border-t border-white/5"></div>
+                            </div>
 
-                    <form onSubmit={handleEmailAuth} className="space-y-4">
-                        <div>
-                            <label htmlFor="email" className="sr-only">Email address</label>
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                autoComplete="email"
-                                required
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all font-medium"
-                                placeholder="Email address"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="password" className="sr-only">Password</label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                autoComplete={isSignUp ? "new-password" : "current-password"}
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all font-medium"
-                                placeholder="Password"
-                            />
-                        </div>
+                            {/* Email Form */}
+                            <form onSubmit={handleEmailAuth} className="space-y-4">
+                                <div className="group/input relative">
+                                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-emerald-500 transition-colors">
+                                        <Mail className="w-4 h-4" />
+                                    </div>
+                                    <input
+                                        required
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-5 py-5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-all font-medium hover:border-white/20"
+                                        placeholder="Creator Email"
+                                    />
+                                </div>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-4 rounded-xl border border-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {loading ? (isSignUp ? 'Creating account...' : 'Signing in...') : (isSignUp ? 'Create Creator Account' : 'Access Dashboard')}
-                        </button>
-                    </form>
+                                <div className="group/input relative">
+                                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within/input:text-emerald-500 transition-colors">
+                                        <Lock className="w-4 h-4" />
+                                    </div>
+                                    <input
+                                        required
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-5 py-5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-all font-medium hover:border-white/20"
+                                        placeholder="Access Key"
+                                    />
+                                </div>
 
-                    <div className="mt-6 text-center">
-                        <button
-                            onClick={() => {
-                                setIsSignUp(!isSignUp);
-                                setMessage(null);
-                            }}
-                            className="text-xs uppercase tracking-widest text-zinc-500 hover:text-white transition-colors font-bold"
-                        >
-                            {isSignUp ? 'Already a creator? Sign In' : 'Want to share resources? Sign Up'}
-                        </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-black font-black uppercase tracking-[0.2em] text-xs py-5 rounded-2xl border border-emerald-500/30 hover:border-emerald-500 transition-all active:scale-[0.98] disabled:opacity-50 shadow-lg"
+                                >
+                                    {loading ? (isSignUp ? 'Processing...' : 'Verifying...') : (isSignUp ? 'Apply for Access' : 'Establish Session')}
+                                </button>
+                            </form>
+
+                            {/* Toggle Sign In/Up */}
+                            <div className="text-center pt-2">
+                                <button
+                                    onClick={() => {
+                                        setIsSignUp(!isSignUp);
+                                        setMessage(null);
+                                    }}
+                                    className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 hover:text-emerald-400 transition-colors font-black"
+                                >
+                                    {isSignUp ? 'Existing Creator? Portal Access' : 'New Talent? Join the Network'}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div className="mt-8 flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-600">
-                    <ShieldCheck className="h-3 w-3" aria-hidden="true" />
-                    NOMOREDMS Creator Identity
-                </div>
-            </div>
+                {/* Footer Attribution */}
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-12 flex flex-col items-center gap-4"
+                >
+                    <div className="flex items-center gap-3 px-5 py-2 bg-white/5 rounded-full border border-white/5">
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-500">NOMOREDMS Encrypted Identity</span>
+                    </div>
+                    
+                    <div className="flex gap-8">
+                        <Link href="/privacy-policy" className="text-[9px] font-bold uppercase tracking-widest text-zinc-700 hover:text-zinc-400 transition-colors">Privacy</Link>
+                        <Link href="/terms-of-service" className="text-[9px] font-bold uppercase tracking-widest text-zinc-700 hover:text-zinc-400 transition-colors">Terms</Link>
+                    </div>
+                </motion.div>
+            </motion.div>
         </div>
     );
 }

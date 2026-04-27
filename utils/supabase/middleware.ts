@@ -54,17 +54,43 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    const isAdminAuthenticated = request.cookies.has('admin_resource_access')
+    const { data: { user } } = await supabase.auth.getUser()
 
-    // ADMIN FIREWALL: Protected Routes
-    if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/login') && !isAdminAuthenticated) {
-        const url = new URL('/admin/login', request.url)
-        url.searchParams.set('next', request.nextUrl.pathname)
-        return NextResponse.redirect(url)
+    // Protected Route Logic
+    const isLoginPage = request.nextUrl.pathname.startsWith('/admin/login')
+    const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+
+    if (isAdminRoute && !isLoginPage) {
+        if (!user) {
+            const url = new URL('/admin/login', request.url)
+            url.searchParams.set('next', request.nextUrl.pathname)
+            return NextResponse.redirect(url)
+        }
+
+        // Check if user has admin role in profiles table
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        if (profile?.role !== 'admin') {
+            // Not an admin, redirect to home or login with error
+            return NextResponse.redirect(new URL('/', request.url))
+        }
     }
 
-    if (request.nextUrl.pathname === '/admin/login' && isAdminAuthenticated) {
-        return NextResponse.redirect(new URL('/admin', request.url))
+    if (isLoginPage && user) {
+        // If logged in as admin, skip login page
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        if (profile?.role === 'admin') {
+            return NextResponse.redirect(new URL('/admin', request.url))
+        }
     }
 
 

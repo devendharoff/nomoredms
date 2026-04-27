@@ -11,7 +11,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     const { slug } = await params;
     const supabase = await createClient();
 
-    const { data: post } = await supabase
+    const { data: post } = await (supabase
         .from('blog_posts')
         .select(`
             *,
@@ -19,14 +19,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         `)
         .eq('slug', slug)
         .eq('is_published', true)
-        .single();
+        .single() as any);
 
     if (!post) {
         notFound();
     }
 
     // Brute-force fix for data that was double-escaped during insertion
-    let cleanContent = post.content
+    let cleanContent = (post.content || '')
         .replace(/\\n/g, '\n')
         .replace(/â€“/g, '—')
         .replace(/â€™/g, "'");
@@ -94,7 +94,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
                 {post.thumbnail_url && (
                     <div className="aspect-video rounded-[3rem] overflow-hidden mb-20 border border-zinc-100 dark:border-white/5 shadow-2xl shadow-black/5">
-                        <img src={post.thumbnail_url} className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" alt="" />
+                        <img src={post.thumbnail_url || ''} className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" alt="" />
                     </div>
                 )}
 

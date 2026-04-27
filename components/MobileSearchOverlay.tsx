@@ -11,7 +11,7 @@ interface MobileSearchOverlayProps {
   currentSearchTerm: string;
 }
 
-const MobileSearchOverlay: React.FC<MobileSearchOverlayProps> = ({ isOpen, onClose, onSearch, currentSearchTerm }) => {
+const MobileSearchOverlay: React.FC<MobileSearchOverlayProps> = ({ isOpen, onClose, onSearch, currentSearchTerm = '' }) => {
   const [query, setQuery] = useState(currentSearchTerm);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -32,7 +32,7 @@ const MobileSearchOverlay: React.FC<MobileSearchOverlayProps> = ({ isOpen, onClo
   };
 
   const filtered = SUGGESTIONS.filter(s =>
-    s.label.toLowerCase().includes(query.toLowerCase())
+    s.label.toLowerCase().includes((query || '').toLowerCase())
   );
 
   const handleSearchTrigger = (term: string) => {

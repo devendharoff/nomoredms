@@ -53,6 +53,8 @@ interface AdminDashboardProps {
   totalClicks?: number;
   dbCategories?: any[];
   dbNiches?: any[];
+  auditLogs?: any[];
+  adminRequests?: any[];
   onAddResource: (r: Partial<Resource>) => void;
   onAddCreator: (c: Partial<Creator>) => void;
   onAddPrompt?: (p: Partial<TrendingPrompt>) => void;
@@ -65,6 +67,9 @@ interface AdminDashboardProps {
   onUpdateProfile?: (id: string, updates: Partial<Profile>) => void;
   onBulkUpload?: (type: 'creators' | 'resources', data: any[]) => void;
   onUploadFile?: (file: File, bucket: 'avatars' | 'thumbnails') => Promise<string | null>;
+  onAddCategory?: (name: string) => void;
+  onAddNiche?: (name: string) => void;
+  onUpdateAdminRequest?: (id: string, status: 'approved' | 'rejected') => void;
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({
@@ -75,6 +80,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   totalClicks = 0,
   dbCategories = [],
   dbNiches = [],
+  auditLogs = [],
+  adminRequests = [],
   onAddResource,
   onAddCreator,
   onAddPrompt,
@@ -86,9 +93,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateCreator,
   onUpdateProfile,
   onBulkUpload,
-  onUploadFile
+  onUploadFile,
+  onAddCategory,
+  onAddNiche,
+  onUpdateAdminRequest
 }) => {
-  const [activeTab, setActiveTab] = useState<'staging' | 'rolodex' | 'fixer' | 'manual' | 'prompts' | 'access' | 'bulk'>('staging');
+  const [activeTab, setActiveTab] = useState<'staging' | 'rolodex' | 'fixer' | 'manual' | 'prompts' | 'access' | 'bulk' | 'audit' | 'taxonomy'>('staging');
   const [editingItem, setEditingItem] = useState<Resource | null>(null);
   const [editingCreator, setEditingCreator] = useState<Creator | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -223,9 +233,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <button onClick={() => setActiveTab('rolodex')} className={`whitespace-nowrap px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'rolodex' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-neutral-500 hover:text-white'}`}>Creators</button>
         <button onClick={() => setActiveTab('fixer')} className={`whitespace-nowrap px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'fixer' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-neutral-500 hover:text-white'}`}>Live Fixer</button>
         <button onClick={() => setActiveTab('prompts')} className={`whitespace-nowrap px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'prompts' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-neutral-500 hover:text-white'} flex items-center gap-2`}><Sparkles className="h-3 w-3" /> Prompt Forge</button>
+        <button onClick={() => setActiveTab('taxonomy')} className={`whitespace-nowrap px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'taxonomy' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-neutral-500 hover:text-white'} flex items-center gap-2`}><Database className="h-3 w-3" /> Taxonomy</button>
         <button onClick={() => setActiveTab('manual')} className={`whitespace-nowrap px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'manual' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-neutral-500 hover:text-white'}`}>Manual</button>
         <button onClick={() => setActiveTab('access')} className={`whitespace-nowrap px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'access' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-neutral-500 hover:text-white'} flex items-center gap-2`}><ShieldCheck className="h-3 w-3" /> Access</button>
         <button onClick={() => setActiveTab('bulk')} className={`whitespace-nowrap px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'bulk' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-neutral-500 hover:text-white'} flex items-center gap-2`}><Upload className="h-3 w-3" /> Bulk Injector</button>
+        <button onClick={() => setActiveTab('audit')} className={`whitespace-nowrap px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'audit' ? 'bg-white text-black shadow-lg shadow-white/5' : 'text-neutral-500 hover:text-white'} flex items-center gap-2`}><History className="h-3 w-3" /> Audit Logs</button>
       </div>
 
       <AnimatePresence mode="wait">
@@ -346,6 +358,68 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            {/* Admin Requests Table */}
+            <div className="pt-10 space-y-6">
+              <div className="flex items-center justify-between px-2">
+                <h3 className="text-xl font-black text-white italic uppercase tracking-tighter flex items-center gap-4">
+                  Pending Admin Requests
+                  <span className="text-[8px] font-black text-yellow-500 border border-yellow-500/20 px-3 py-1 rounded-full uppercase tracking-widest font-mono">APPROVAL_REQUIRED</span>
+                </h3>
+              </div>
+
+              <div className="rounded-[2rem] border border-white/5 bg-neutral-900/40 overflow-hidden shadow-2xl backdrop-blur-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[12px] border-collapse">
+                    <thead>
+                      <tr className="border-b border-white/5 text-neutral-500 font-black uppercase tracking-widest bg-black/40 font-mono">
+                        <th className="px-8 py-5">Applicant</th>
+                        <th className="px-8 py-5">Reason / Justification</th>
+                        <th className="px-8 py-5 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {adminRequests.filter(r => r.status === 'pending').map((req) => (
+                        <tr key={req.id} className="hover:bg-white/[0.03] transition-colors group">
+                          <td className="px-8 py-6">
+                            <div className="font-bold text-white uppercase tracking-tight">{req.user_email}</div>
+                            <div className="text-[10px] text-neutral-500 font-mono">Sent: {new Date(req.created_at).toLocaleDateString()}</div>
+                          </td>
+                          <td className="px-8 py-6 text-neutral-400 italic">
+                            "{req.reason || 'No reason provided.'}"
+                          </td>
+                          <td className="px-8 py-6">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => onUpdateAdminRequest?.(req.id, 'rejected')}
+                                className="p-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                                title="Reject"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => onUpdateAdminRequest?.(req.id, 'approved')}
+                                className="p-3 rounded-xl bg-green-500 text-black hover:bg-green-400 transition-all shadow-lg shadow-green-500/20"
+                                title="Approve"
+                              >
+                                <Check className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {adminRequests.filter(r => r.status === 'pending').length === 0 && (
+                        <tr>
+                          <td colSpan={3} className="py-12 text-center text-[10px] font-black uppercase tracking-widest text-neutral-600">
+                            No pending requests in queue.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -767,11 +841,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-neutral-600">Category</label>
                     <select
-                      value={newManualResource.category}
-                      onChange={e => setNewManualResource({ ...newManualResource, category: e.target.value })}
+                      value={newManualResource.categoryId || newManualResource.category}
+                      onChange={e => {
+                        const cat = dbCategories.find(c => c.id === e.target.value || c.name === e.target.value);
+                        setNewManualResource({ 
+                          ...newManualResource, 
+                          category: cat?.name || e.target.value,
+                          categoryId: cat?.id 
+                        });
+                      }}
                       className="w-full bg-black border border-white/5 rounded-xl p-4 text-xs font-black uppercase tracking-widest text-white outline-none"
                     >
-                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="">Select Category</option>
+                      {dbCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      {!dbCategories.length && CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
@@ -821,6 +904,121 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 >
                   <Database className="h-5 w-5" /> Ingest & Publish
                 </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Module: Audit Logs */}
+        {activeTab === 'audit' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter flex items-center gap-4">
+                Administrative Audit Log
+                <span className="text-[10px] font-black text-neutral-500 border border-white/10 px-3 py-1 rounded-full uppercase tracking-widest font-mono">CORE_LEDGER</span>
+              </h3>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/5 bg-neutral-900/40 overflow-hidden shadow-2xl backdrop-blur-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[12px] border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/5 text-neutral-500 font-black uppercase tracking-widest bg-black/40 font-mono">
+                      <th className="px-10 py-5">Timestamp</th>
+                      <th className="px-10 py-5">Admin</th>
+                      <th className="px-10 py-5">Action</th>
+                      <th className="px-10 py-5">Target</th>
+                      <th className="px-10 py-5">Data Payload</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {auditLogs.map((log) => (
+                      <tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
+                        <td className="px-10 py-6 text-neutral-400 font-mono text-[10px]">
+                          {new Date(log.created_at).toLocaleString()}
+                        </td>
+                        <td className="px-10 py-6">
+                          <div className="font-bold text-white uppercase tracking-tight">{profiles.find(p => p.id === log.admin_id)?.email || log.admin_id.substring(0, 8)}...</div>
+                        </td>
+                        <td className="px-10 py-6">
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${log.action === 'INSERT' ? 'bg-green-500/10 border-green-500/30 text-green-400' : log.action === 'UPDATE' ? 'bg-blue-500/10 border-blue-500/30 text-blue-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                            {log.action}
+                          </span>
+                        </td>
+                        <td className="px-10 py-6">
+                          <div className="font-black text-white uppercase tracking-tight">{log.table_name}</div>
+                          <div className="text-[10px] text-neutral-500 font-mono">ID: {log.record_id.substring(0, 8)}...</div>
+                        </td>
+                        <td className="px-10 py-6">
+                          <button onClick={() => console.log(log.payload)} className="text-[10px] text-blue-400 hover:underline font-mono">View Raw JSON</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {auditLogs.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="py-20 text-center">
+                          <History className="h-10 w-10 text-neutral-700 mx-auto mb-4" />
+                          <p className="text-[10px] font-black uppercase tracking-widest text-neutral-600">No audit events recorded.</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Module: Taxonomy Management */}
+        {activeTab === 'taxonomy' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            {/* Categories */}
+            <div className="space-y-6">
+              <div className="rounded-[2rem] border border-white/5 bg-neutral-900/40 p-8 space-y-6">
+                <h4 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                  <Database className="h-5 w-5 text-blue-400" /> Categories
+                </h4>
+                <div className="flex gap-2">
+                  <input id="new-cat" placeholder="e.g. Video Assets" className="flex-1 bg-black border border-white/5 rounded-xl p-4 text-sm font-bold text-white focus:border-blue-500 outline-none" />
+                  <button onClick={() => {
+                    const input = document.getElementById('new-cat') as HTMLInputElement;
+                    if (input.value && onAddCategory) onAddCategory(input.value);
+                    input.value = '';
+                  }} className="px-6 py-4 rounded-xl bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-400 transition-all shadow-lg">Add</button>
+                </div>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto no-scrollbar pr-2">
+                  {dbCategories.map(cat => (
+                    <div key={cat.id} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 group hover:border-white/10">
+                      <div className="font-bold text-white uppercase tracking-tight">{cat.name}</div>
+                      <div className="text-[10px] text-neutral-500 font-mono uppercase">{cat.slug}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Niches */}
+            <div className="space-y-6">
+              <div className="rounded-[2rem] border border-white/5 bg-neutral-900/40 p-8 space-y-6">
+                <h4 className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                  <Database className="h-5 w-5 text-emerald-400" /> Niches
+                </h4>
+                <div className="flex gap-2">
+                  <input id="new-niche" placeholder="e.g. Motion Design" className="flex-1 bg-black border border-white/5 rounded-xl p-4 text-sm font-bold text-white focus:border-emerald-500 outline-none" />
+                  <button onClick={() => {
+                    const input = document.getElementById('new-niche') as HTMLInputElement;
+                    if (input.value && onAddNiche) onAddNiche(input.value);
+                    input.value = '';
+                  }} className="px-6 py-4 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg">Add</button>
+                </div>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto no-scrollbar pr-2">
+                  {dbNiches.map(niche => (
+                    <div key={niche.id} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 group hover:border-white/10">
+                      <div className="font-bold text-white uppercase tracking-tight">{niche.name}</div>
+                      <div className="text-[10px] text-neutral-500 font-mono uppercase">{niche.slug}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </motion.div>
@@ -912,11 +1110,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </label>
                   <div className="grid grid-cols-2 gap-4">
                     <select
-                      value={editingItem!.category}
-                      onChange={e => setEditingItem(prev => prev ? { ...prev, category: e.target.value } : null)}
+                      value={editingItem!.categoryId || editingItem!.category}
+                      onChange={e => {
+                        const cat = dbCategories.find(c => c.id === e.target.value || c.name === e.target.value);
+                        setEditingItem(prev => prev ? { ...prev, category: cat?.name || e.target.value, categoryId: cat?.id } : null);
+                      }}
                       className="bg-black border border-white/5 rounded-xl p-5 text-[10px] font-black uppercase tracking-widest text-white focus:border-green-500 outline-none appearance-none shadow-inner"
                     >
-                      {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      <option value="">Select Category</option>
+                      {dbCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      {!dbCategories.length && CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                     <input
                       value={editingItem!.tags.join(', ')}
@@ -1009,11 +1212,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <Filter className="h-3 w-3" /> Classification
                   </label>
                   <select
-                    value={editingCreator.niche}
-                    onChange={e => setEditingCreator(prev => prev ? { ...prev, niche: e.target.value } : null)}
+                    value={editingCreator.nicheId || editingCreator.niche}
+                    onChange={e => {
+                      const niche = dbNiches.find(n => n.id === e.target.value || n.name === e.target.value);
+                      setEditingCreator(prev => prev ? { ...prev, niche: niche?.name || e.target.value, nicheId: niche?.id } : null);
+                    }}
                     className="w-full bg-black border border-white/5 rounded-xl p-5 text-xs font-black uppercase tracking-widest text-white focus:border-blue-500 outline-none appearance-none shadow-inner"
                   >
-                    {NICHES.map(n => <option key={n} value={n}>{n}</option>)}
+                    <option value="">Select Niche</option>
+                    {dbNiches.map(n => <option key={n.id} value={n.id}>{n.name}</option>)}
+                    {!dbNiches.length && NICHES.map(n => <option key={n} value={n}>{n}</option>)}
                   </select>
                 </div>
 

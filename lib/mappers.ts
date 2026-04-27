@@ -13,6 +13,7 @@ export function mapCreator(dbCreator: any): Creator {
         isVerified: !!dbCreator.is_verified,
         isHidden: !!dbCreator.is_hidden,
         niche: dbCreator.niche || 'Other',
+        nicheId: dbCreator.niche_id,
         followersCount: Number(dbCreator.followers_count || 0),
         socials: dbCreator.socials || {},
     };
@@ -33,6 +34,7 @@ export function mapResource(dbResource: any): Resource {
         isHidden: !!dbResource.is_hidden,
         status: dbResource.status || 'pending',
         health: dbResource.health || 'ok',
+        categoryId: dbResource.category_id,
     };
 }
 
