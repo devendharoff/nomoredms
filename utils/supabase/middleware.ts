@@ -62,6 +62,8 @@ export async function updateSession(request: NextRequest) {
     // Protected Route Logic
     const isLoginPage = request.nextUrl.pathname.startsWith('/admin/login')
     const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+    const isCreatorRoute = request.nextUrl.pathname.startsWith('/dashboard/creator')
+    const isCreatorLoginPage = request.nextUrl.pathname.startsWith('/creator-login')
 
     if (isAdminRoute && !isLoginPage) {
         if (!user) {
@@ -94,6 +96,21 @@ export async function updateSession(request: NextRequest) {
         if (profile?.role === 'admin') {
             return NextResponse.redirect(new URL('/admin', request.url))
         }
+    }
+
+    // Creator Dashboard Protection
+    if (isCreatorRoute) {
+        if (!user) {
+            const url = new URL('/creator-login', request.url)
+            url.searchParams.set('next', request.nextUrl.pathname)
+            return NextResponse.redirect(url)
+        }
+        // Page handles creator record initialization
+    }
+
+    if (isCreatorLoginPage && user) {
+        // If logged in, redirect to dashboard
+        return NextResponse.redirect(new URL('/dashboard/creator', request.url))
     }
 
 
