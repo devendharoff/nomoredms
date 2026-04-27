@@ -100,6 +100,56 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author_id: string | null
+          category: string | null
+          content: string
+          created_at: string | null
+          excerpt: string | null
+          id: string
+          is_published: boolean | null
+          published_at: string | null
+          slug: string
+          thumbnail_url: string | null
+          title: string
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string | null
+          content: string
+          created_at?: string | null
+          excerpt?: string | null
+          id?: string
+          is_published?: boolean | null
+          published_at?: string | null
+          slug: string
+          thumbnail_url?: string | null
+          title: string
+        }
+        Update: {
+          author_id?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          excerpt?: string | null
+          id?: string
+          is_published?: boolean | null
+          published_at?: string | null
+          slug?: string
+          thumbnail_url?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "creators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookmarks: {
         Row: {
           created_at: string | null
@@ -188,56 +238,6 @@ export type Database = {
           },
         ]
       }
-      blog_posts: {
-        Row: {
-          author_id: string | null
-          category: string | null
-          content: string
-          created_at: string
-          excerpt: string | null
-          id: string
-          is_published: boolean | null
-          published_at: string
-          slug: string
-          thumbnail_url: string | null
-          title: string
-        }
-        Insert: {
-          author_id?: string | null
-          category?: string | null
-          content: string
-          created_at?: string
-          excerpt?: string | null
-          id?: string
-          is_published?: boolean | null
-          published_at?: string
-          slug: string
-          thumbnail_url?: string | null
-          title: string
-        }
-        Update: {
-          author_id?: string | null
-          category?: string | null
-          content?: string
-          created_at?: string
-          excerpt?: string | null
-          id?: string
-          is_published?: boolean | null
-          published_at?: string
-          slug?: string
-          thumbnail_url?: string | null
-          title?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blog_posts_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "creators"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       creators: {
         Row: {
           bio: string | null
@@ -252,6 +252,7 @@ export type Database = {
           profile_pic: string | null
           slug: string
           socials: Json | null
+          user_id: string | null
           username: string
         }
         Insert: {
@@ -267,6 +268,7 @@ export type Database = {
           profile_pic?: string | null
           slug: string
           socials?: Json | null
+          user_id?: string | null
           username: string
         }
         Update: {
@@ -282,6 +284,7 @@ export type Database = {
           profile_pic?: string | null
           slug?: string
           socials?: Json | null
+          user_id?: string | null
           username?: string
         }
         Relationships: [
@@ -349,6 +352,7 @@ export type Database = {
           fts: unknown
           health: string | null
           id: string
+          instagram_post_url: string | null
           is_hidden: boolean | null
           status: string | null
           tags: string[] | null
@@ -365,6 +369,7 @@ export type Database = {
           fts?: unknown
           health?: string | null
           id?: string
+          instagram_post_url?: string | null
           is_hidden?: boolean | null
           status?: string | null
           tags?: string[] | null
@@ -381,6 +386,7 @@ export type Database = {
           fts?: unknown
           health?: string | null
           id?: string
+          instagram_post_url?: string | null
           is_hidden?: boolean | null
           status?: string | null
           tags?: string[] | null
@@ -409,6 +415,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          likes: number | null
           model: string | null
           prompt: string
           thumbnail: string | null
@@ -418,6 +425,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          likes?: number | null
           model?: string | null
           prompt: string
           thumbnail?: string | null
@@ -427,6 +435,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          likes?: number | null
           model?: string | null
           prompt?: string
           thumbnail?: string | null

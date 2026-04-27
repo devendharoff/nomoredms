@@ -26,7 +26,7 @@ export default async function BlogPage() {
         thumbnailUrl: p.thumbnail_url || undefined,
         isPublished: p.is_published ?? false,
         publishedAt: p.published_at || null,
-        createdAt: p.created_at,
+        createdAt: p.created_at || new Date().toISOString(),
         authorId: p.author_id || undefined
     }));
 
